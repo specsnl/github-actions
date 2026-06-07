@@ -4,19 +4,15 @@ description: Creates and pushes a multi-platform Docker manifest
 inputs:
   image-name:
     description: Name of the image
-    type: string
     required: true
   raw-tag:
     description: Raw tag value
-    type: string
     default: latest
   title:
     description: Custom image title (overrides repository name)
-    type: string
     required: false
   description:
     description: Custom image description (overrides repository description)
-    type: string
     required: false
 
 runs:

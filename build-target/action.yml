@@ -4,35 +4,27 @@ description: Builds a Docker image for a specific target and platform using buil
 inputs:
   platform:
     description: Platform i.e. "linux/amd64", "linux/arm64"
-    type: string
     required: true
   image-name:
     description: Name of the image
-    type: string
     required: true
   dockerfile:
     description: Dockerfile path
-    type: string
     required: true
   target:
     description: Name of the dockerfile target
-    type: string
     required: true
   title:
     description: Custom image title (overrides repository name)
-    type: string
     required: false
   description:
     description: Custom image description (overrides repository description)
-    type: string
     required: false
   secrets:
     description: List of secrets to expose to the build
-    type: string
     required: false
   raw-tag:
     description: Raw tag value
-    type: string
     default: latest
 
 runs:
