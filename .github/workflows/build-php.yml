@@ -19,6 +19,14 @@ on:
         description: Dockerfile path
         type: string
         default: Dockerfile
+      title:
+        description: Custom image title (overrides repository name)
+        type: string
+        required: false
+      description:
+        description: Custom image description (overrides repository description)
+        type: string
+        required: false
       secrets:
         description: List of secrets to expose to the build
         type: string
@@ -56,7 +64,6 @@ jobs:
         uses: cisagov/action-disable-apparmor@v1
 
       - name: Set up Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v4
 
       - name: Build and Push by digest (runtime)
@@ -66,6 +73,8 @@ jobs:
           platform: ${{ inputs.platform }}
           image-name: ${{ steps.image_name.outputs.lowercase }}
           target: runtime
+          title: ${{ inputs.title }}
+          description: ${{ inputs.description }}
           secrets: ${{ inputs.secrets }}
 
       - name: Build and Push by digest (builder)
@@ -75,6 +84,8 @@ jobs:
           platform: ${{ inputs.platform }}
           image-name: ${{ steps.image_name.outputs.lowercase }}
           target: builder
+          title: ${{ inputs.title }}
+          description: ${{ inputs.description }}
           secrets: ${{ inputs.secrets }}
 
       - name: Build and Push by digest (builder_nodejs)
@@ -84,4 +95,6 @@ jobs:
           platform: ${{ inputs.platform }}
           image-name: ${{ steps.image_name.outputs.lowercase }}
           target: builder_nodejs
+          title: ${{ inputs.title }}
+          description: ${{ inputs.description }}
           secrets: ${{ inputs.secrets }}

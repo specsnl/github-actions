@@ -45,6 +45,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Image name
+        id: image_name
+        uses: ASzc/change-string-case-action@v8
+        with:
+          string: ${{ inputs.image-name }}
+
       - name: Log in to the Container registry
         uses: docker/login-action@v4
         if: ${{ github.actor != 'dependabot[bot]' }}
@@ -59,12 +65,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Image name
-        id: image_name
-        uses: ASzc/change-string-case-action@v8
-        with:
-          string: ${{ inputs.image-name }}
 
       - name: Build and Push by digest
         uses: specsnl/github-actions/build-image@1.2.3
