@@ -82,7 +82,7 @@ jobs:
         with:
           dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ inputs.platform }}
-          image-name: ${{ steps.image_name.outputs.lowercase }}
+          image-name: ${{ steps.image_name.outputs.lowercase }}/builder
           target: builder
           title: ${{ inputs.title }}
           description: ${{ inputs.description }}
@@ -93,7 +93,7 @@ jobs:
         with:
           dockerfile: ${{ inputs.dockerfile }}
           platform: ${{ inputs.platform }}
-          image-name: ${{ steps.image_name.outputs.lowercase }}
+          image-name: ${{ steps.image_name.outputs.lowercase }}/builder_nodejs
           target: builder_nodejs
           title: ${{ inputs.title }}
           description: ${{ inputs.description }}

@@ -67,7 +67,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Create Manifest (runtime)
-        uses: specsnl/github-actions/create-manifest-for-target@2.0.0-rc.1
+        uses: specsnl/github-actions/create-manifest@2.0.0-rc.1
         with:
           image-name: ${{ steps.image_name.outputs.lowercase }}
           target: runtime
@@ -76,18 +76,18 @@ jobs:
           raw-tag: ${{ inputs.raw-tag }}
 
       - name: Create Manifest (builder)
-        uses: specsnl/github-actions/create-manifest-for-target@2.0.0-rc.1
+        uses: specsnl/github-actions/create-manifest@2.0.0-rc.1
         with:
-          image-name: ${{ steps.image_name.outputs.lowercase }}
+          image-name: ${{ steps.image_name.outputs.lowercase }}/builder
           target: builder
           description: ${{ inputs.description-builder }}
           title: ${{ inputs.title-builder }}
           raw-tag: ${{ inputs.raw-tag }}
 
       - name: Create Manifest (builder_nodejs)
-        uses: specsnl/github-actions/create-manifest-for-target@2.0.0-rc.1
+        uses: specsnl/github-actions/create-manifest@2.0.0-rc.1
         with:
-          image-name: ${{ steps.image_name.outputs.lowercase }}
+          image-name: ${{ steps.image_name.outputs.lowercase }}/builder_nodejs
           target: builder_nodejs
           description: ${{ inputs.description-builder_nodejs }}
           title: ${{ inputs.title-builder_nodejs }}

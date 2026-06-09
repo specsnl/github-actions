@@ -42,7 +42,7 @@ runs:
         echo "safe_image_name=${image_name//\//-}" >> $GITHUB_OUTPUT
 
         target="${{ inputs.target }}"
-        echo "safe_target=${target:-_}" >> $GITHUB_OUTPUT
+        echo "safe_target=${target:-_NO_TARGET_}" >> $GITHUB_OUTPUT
 
     - name: Raw tag
       id: raw_tag
@@ -92,6 +92,6 @@ runs:
       uses: actions/upload-artifact@v7
       with:
         name: digests-${{ steps.prepare.outputs.safe_image_name }}-${{ steps.prepare.outputs.safe_target }}-${{ steps.prepare.outputs.safe_platform }}
-        path: ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/*
+        path: ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}/*
         if-no-files-found: error
         retention-days: 1

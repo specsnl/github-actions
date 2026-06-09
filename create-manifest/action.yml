@@ -5,6 +5,9 @@ inputs:
   image-name:
     description: Name of the image
     required: true
+  target:
+    description: Name of the dockerfile target
+    required: false
   raw-tag:
     description: Raw tag value
     default: latest
@@ -18,11 +21,22 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Download digests
+
+    - name: Prepare
+      shell: bash
+      id: prepare
+      run: |
+        image_name=${{ inputs.image-name }}
+        echo "safe_image_name=${image_name//\//-}" >> $GITHUB_OUTPUT
+
+        target="${{ inputs.target }}"
+        echo "safe_target=${target:-_NO_TARGET_}" >> $GITHUB_OUTPUT
+
+    - name: Download digests ${{ inputs.target }}
       uses: actions/download-artifact@v8
       with:
-        path: ${{ runner.temp }}/digests
-        pattern: digests-*
+        path: ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}
+        pattern: digests-${{ steps.prepare.outputs.safe_image_name }}-${{ steps.prepare.outputs.safe_target }}-*
         merge-multiple: true
 
     - name: Raw tag
@@ -31,7 +45,7 @@ runs:
       with:
         string: ${{ inputs.raw-tag }}
 
-    - name: Docker meta
+    - name: Docker meta ${{ inputs.target }}
       id: meta
       uses: docker/metadata-action@v6
       with:
@@ -50,7 +64,7 @@ runs:
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
 
     - name: Create manifest list and push
-      working-directory: ${{ runner.temp }}/digests
+      working-directory: ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}
       shell: bash
       run: |
         mapfile -t tags < <(jq -r '.tags[] | "-t\n" + .' <<< "$DOCKER_METADATA_OUTPUT_JSON")
@@ -61,7 +75,7 @@ runs:
         images=$(printf '${{ inputs.image-name }}@sha256:%s ' *)
 
         docker buildx imagetools create "${tags[@]}" "${annotations[@]}" $images
-        
+
     - name: Inspect image
       shell: bash
       run: |
