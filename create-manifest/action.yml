@@ -4,29 +4,42 @@ description: Creates and pushes a multi-platform Docker manifest
 inputs:
   image-name:
     description: Name of the image
-    type: string
     required: true
+  target:
+    description: Name of the dockerfile target
+    required: false
   raw-tag:
     description: Raw tag value
-    type: string
     default: latest
   title:
     description: Custom image title (overrides repository name)
-    type: string
     required: false
   description:
     description: Custom image description (overrides repository description)
-    type: string
     required: false
 
 runs:
   using: composite
   steps:
-    - name: Download digests
+
+    - name: Prepare
+      id: prepare
+      shell: bash
+      env:
+        IMAGE_NAME: ${{ inputs.image-name }}
+      run: |
+        primary_image_name=$(printf '%s\n' "$IMAGE_NAME" | sed '/^[[:space:]]*$/d' | head -n1 | xargs)
+        echo "primary_image_name=$primary_image_name" >> $GITHUB_OUTPUT
+        echo "safe_image_name=${primary_image_name//\//-}" >> $GITHUB_OUTPUT
+
+        target="${{ inputs.target }}"
+        echo "safe_target=${target:-_NO_TARGET_}" >> $GITHUB_OUTPUT
+
+    - name: Download digests ${{ inputs.target }}
       uses: actions/download-artifact@v8
       with:
-        path: ${{ runner.temp }}/digests
-        pattern: digests-*
+        path: ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}
+        pattern: digests-${{ steps.prepare.outputs.safe_image_name }}-${{ steps.prepare.outputs.safe_target }}-*
         merge-multiple: true
 
     - name: Raw tag
@@ -35,7 +48,7 @@ runs:
       with:
         string: ${{ inputs.raw-tag }}
 
-    - name: Docker meta
+    - name: Docker meta ${{ inputs.target }}
       id: meta
       uses: docker/metadata-action@v6
       with:
@@ -54,7 +67,7 @@ runs:
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
 
     - name: Create manifest list and push
-      working-directory: ${{ runner.temp }}/digests
+      working-directory: ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}
       shell: bash
       run: |
         mapfile -t tags < <(jq -r '.tags[] | "-t\n" + .' <<< "$DOCKER_METADATA_OUTPUT_JSON")
@@ -62,11 +75,11 @@ runs:
           .labels | to_entries[] | select(.value != "") |
           "--annotation\nindex:" + .key + "=" + .value + "\n--annotation\nmanifest-descriptor:" + .key + "=" + .value
         ' <<< "$DOCKER_METADATA_OUTPUT_JSON")
-        images=$(printf '${{ inputs.image-name }}@sha256:%s ' *)
+        images=$(printf '${{ steps.prepare.outputs.primary_image_name }}@sha256:%s ' *)
 
         docker buildx imagetools create "${tags[@]}" "${annotations[@]}" $images
-        
+
     - name: Inspect image
       shell: bash
       run: |
-        docker buildx imagetools inspect ${{ inputs.image-name }}:${{ steps.meta.outputs.version }}
+        docker buildx imagetools inspect ${{ steps.prepare.outputs.primary_image_name }}:${{ steps.meta.outputs.version }}
