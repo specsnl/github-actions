@@ -87,7 +87,9 @@ jobs:
       - name: Create Manifest (builder_nodejs)
         uses: specsnl/github-actions/create-manifest@2.0.0-rc.1
         with:
-          image-name: ${{ steps.image_name.outputs.lowercase }}/builder_nodejs
+          image-name: |
+            ${{ steps.image_name.outputs.lowercase }}/builder_nodejs
+            ${{ steps.image_name.outputs.lowercase }}/node
           target: builder_nodejs
           description: ${{ inputs.description-builder_nodejs }}
           title: ${{ inputs.title-builder_nodejs }}

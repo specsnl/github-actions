@@ -23,11 +23,14 @@ runs:
   steps:
 
     - name: Prepare
-      shell: bash
       id: prepare
+      shell: bash
+      env:
+        IMAGE_NAME: ${{ inputs.image-name }}
       run: |
-        image_name=${{ inputs.image-name }}
-        echo "safe_image_name=${image_name//\//-}" >> $GITHUB_OUTPUT
+        primary_image_name=$(printf '%s\n' "$IMAGE_NAME" | sed '/^[[:space:]]*$/d' | head -n1 | xargs)
+        echo "primary_image_name=$primary_image_name" >> $GITHUB_OUTPUT
+        echo "safe_image_name=${primary_image_name//\//-}" >> $GITHUB_OUTPUT
 
         target="${{ inputs.target }}"
         echo "safe_target=${target:-_NO_TARGET_}" >> $GITHUB_OUTPUT
@@ -72,11 +75,11 @@ runs:
           .labels | to_entries[] | select(.value != "") |
           "--annotation\nindex:" + .key + "=" + .value + "\n--annotation\nmanifest-descriptor:" + .key + "=" + .value
         ' <<< "$DOCKER_METADATA_OUTPUT_JSON")
-        images=$(printf '${{ inputs.image-name }}@sha256:%s ' *)
+        images=$(printf '${{ steps.prepare.outputs.primary_image_name }}@sha256:%s ' *)
 
         docker buildx imagetools create "${tags[@]}" "${annotations[@]}" $images
 
     - name: Inspect image
       shell: bash
       run: |
-        docker buildx imagetools inspect ${{ inputs.image-name }}:${{ steps.meta.outputs.version }}
+        docker buildx imagetools inspect ${{ steps.prepare.outputs.primary_image_name }}:${{ steps.meta.outputs.version }}
