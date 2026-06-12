@@ -17,6 +17,9 @@ inputs:
   description:
     description: Custom image description (overrides repository description)
     required: false
+  version:
+    description: Value for org.opencontainers.image.version label and annotation
+    required: false
 
 runs:
   using: composite
@@ -60,9 +63,11 @@ runs:
           type=ref,event=pr
           type=raw,event=workflow_dispatch,value=${{ steps.raw_tag.outputs.lowercase }}
         labels: |
+          ${{ inputs.version != '' && format('org.opencontainers.image.version={0}', inputs.version) || '' }}
           ${{ inputs.title != '' && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
         annotations: |
+          ${{ inputs.version != '' && format('org.opencontainers.image.version={0}', inputs.version) || '' }}
           ${{ inputs.title != '' && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
 
