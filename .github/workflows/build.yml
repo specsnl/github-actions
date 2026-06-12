@@ -19,6 +19,10 @@ on:
         description: Dockerfile path
         type: string
         default: Dockerfile
+      context:
+        description: Build context path
+        type: string
+        default: .
       title:
         description: Custom image title (overrides repository name)
         type: string
@@ -67,9 +71,10 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build and Push by digest
-        uses: specsnl/github-actions/build-image@2.0.0
+        uses: specsnl/github-actions/build-image@2.1.0
         with:
           dockerfile: ${{ inputs.dockerfile }}
+          context: ${{ inputs.context }}
           platform: ${{ inputs.platform }}
           image-name: ${{ steps.image_name.outputs.lowercase }}
           title: ${{ inputs.title }}
