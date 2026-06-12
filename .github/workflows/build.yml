@@ -71,7 +71,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Build and Push by digest
-        uses: specsnl/github-actions/build-image@2.0.0
+        uses: specsnl/github-actions/build-image@2.1.0
         with:
           dockerfile: ${{ inputs.dockerfile }}
           context: ${{ inputs.context }}
