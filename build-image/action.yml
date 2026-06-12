@@ -11,6 +11,9 @@ inputs:
   dockerfile:
     description: Dockerfile path
     required: true
+  context:
+    description: Build context path
+    default: .
   target:
     description: Name of the dockerfile target
     required: false
@@ -69,7 +72,7 @@ runs:
       uses: docker/build-push-action@v7
       with:
         push: ${{ github.actor != 'dependabot[bot]' }}
-        context: .
+        context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile}}
         platforms: ${{ inputs.platform }}
         target: ${{ inputs.target }}
