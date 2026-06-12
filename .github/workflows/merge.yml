@@ -23,6 +23,10 @@ on:
         description: Raw tag value
         type: string
         default: latest
+      raw-tags:
+        description: Additional metadata-action tag directives (multiline), forwarded to create-manifest
+        type: string
+        required: false
       version:
         description: Value for org.opencontainers.image.version
         type: string
@@ -58,7 +62,8 @@ jobs:
         uses: specsnl/github-actions/create-manifest@2.0.0
         with:
           image-name: ${{ steps.image_name.outputs.lowercase }}
+          raw-tags: ${{ inputs.raw-tags }}
+          raw-tag: ${{ inputs.raw-tag }}
           version: ${{ inputs.version }}
           title: ${{ inputs.title }}
           description: ${{ inputs.description }}
-          raw-tag: ${{ inputs.raw-tag }}
