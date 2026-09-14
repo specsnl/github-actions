@@ -35,7 +35,6 @@ jobs:
       platform: ${{ matrix.runner.platform }}
       image-name: ghcr.io/specsnl/specs-cli
       target: debian
-      version: ${{ github.ref_name }}
       version-build-arg: SPECS_VERSION
 
   merge:
@@ -45,7 +44,6 @@ jobs:
       runs-on: ubuntu-24.04
       image-name: ghcr.io/specsnl/specs-cli
       target: debian
-      version: ${{ github.ref_name }}
 ```
 
 `target` is the Dockerfile stage to publish. The consuming repository owns its stages — see
@@ -54,8 +52,8 @@ jobs:
 ## Version injection
 
 Go CLIs carry their version in an ldflag, so it has to be known at build time or the image reports its fallback
-(`dev`). `build-go-cli.yml` passes `version` to the Dockerfile as the build arg named by `version-build-arg`; the
-Dockerfile keeps ownership of the ldflag itself, which is how every Go repository in the org is already written:
+(`dev`). `build-go-cli.yml` passes it to the Dockerfile as the build arg named by `version-build-arg`; the Dockerfile
+keeps ownership of the ldflag itself, which is how every Go repository in the org is already written:
 
 ```dockerfile
 ARG GO_MODULE=github.com/specsnl/specs-cli
@@ -65,12 +63,25 @@ RUN CGO_ENABLED=0 go build \
         -ldflags "-s -w -X ${GO_MODULE}/internal/cmd.Version=${SPECS_VERSION}" -o ./specs
 ```
 
-`version-build-arg` has no default on purpose. The arg is named after the binary and differs per repository
-(`SPECS_VERSION`, `LABELSYNC_VERSION`, …), and a wrong value fails silently: buildx warns about an unused build arg,
-the build succeeds, and the image reports `dev`. Assert the version in a
-[pull-request guard](testing-images.md) so that stays impossible to ship.
+On a tag push the version defaults to **the tag without its leading `v`** — `v1.2.3` becomes `1.2.3` — so the
+examples above pass no `version` at all. That default is not cosmetic. Every Go repository in the org also releases
+through GoReleaser, which strips the `v` when it injects the same ldflag; passing `${{ github.ref_name }}` straight
+through would publish an image reporting `v1.2.3` while the binary from that very tag reports `1.2.3`.
+
+Pass `version` explicitly to override it — to build a release from something other than its tag, or to stamp a version
+on a branch build. On any trigger that is not a tag push the default is empty, and the build arg is then omitted
+rather than passed empty, so the Dockerfile's own fallback stands.
+
+`version-build-arg` has no default on purpose, and is the one input here that genuinely cannot have one. The arg is
+named after the binary and differs per repository (`SPECS_VERSION`, `LABELSYNC_VERSION`, …), and a wrong value fails
+silently: buildx warns about an unused build arg, the build succeeds, and the image reports `dev`. Assert the version
+in a [pull-request guard](testing-images.md) so that stays impossible to ship.
 
 Anything else the Dockerfile needs goes through `build-args`, which is appended to the version arg.
+
+`merge-go-cli.yml` needs no `version` either: `metadata-action` already labels the image
+`org.opencontainers.image.version` with the version it computed. The input is there to override that, which is rarely
+what anyone wants.
 
 ## Tags
 
@@ -121,7 +132,6 @@ Run the build and merge jobs once per variant, each with its own `target`:
       platform: ${{ matrix.runner.platform }}
       image-name: ghcr.io/specsnl/specs-cli
       target: alpine
-      version: ${{ github.ref_name }}
       version-build-arg: SPECS_VERSION
 
   merge-alpine:
@@ -132,7 +142,6 @@ Run the build and merge jobs once per variant, each with its own `target`:
       image-name: ghcr.io/specsnl/specs-cli
       target: alpine
       variant: alpine
-      version: ${{ github.ref_name }}
 ```
 
 `variant: alpine` yields `specs-cli:1.2.3-alpine` and a bare `specs-cli:alpine`, alongside the unsuffixed primary
