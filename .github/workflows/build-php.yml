@@ -37,64 +37,42 @@ on:
         default: false
 
 jobs:
-  build:
-    name: Build Image
-    runs-on: ${{ inputs.runs-on }}
-    steps:
 
-      - name: Checkout
-        uses: actions/checkout@v7
+  runtime:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      platform: ${{ inputs.platform }}
+      dockerfile: ${{ inputs.dockerfile }}
+      target: runtime
+      image-name: ${{ inputs.image-name }}
+      title: ${{ inputs.title }}
+      description: ${{ inputs.description }}
+      secrets: ${{ inputs.secrets }}
+      disable-apparmor: ${{ inputs.disable-apparmor }}
 
-      - name: Image name
-        id: image_name
-        uses: ASzc/change-string-case-action@v8
-        with:
-          string: ${{ inputs.image-name }}
+  builder:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      platform: ${{ inputs.platform }}
+      dockerfile: ${{ inputs.dockerfile }}
+      target: builder
+      image-name: ${{ inputs.image-name }}/builder
+      title: ${{ inputs.title }}
+      description: ${{ inputs.description }}
+      secrets: ${{ inputs.secrets }}
+      disable-apparmor: ${{ inputs.disable-apparmor }}
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v4.5.2
-        if: ${{ github.actor != 'dependabot[bot]' }}
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Disable AppArmor
-        if: ${{ inputs.disable-apparmor }}
-        uses: cisagov/action-disable-apparmor@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and Push by digest (runtime)
-        uses: specsnl/github-actions/build-image@2.1.0
-        with:
-          dockerfile: ${{ inputs.dockerfile }}
-          platform: ${{ inputs.platform }}
-          image-name: ${{ steps.image_name.outputs.lowercase }}
-          target: runtime
-          title: ${{ inputs.title }}
-          description: ${{ inputs.description }}
-          secrets: ${{ inputs.secrets }}
-
-      - name: Build and Push by digest (builder)
-        uses: specsnl/github-actions/build-image@2.1.0
-        with:
-          dockerfile: ${{ inputs.dockerfile }}
-          platform: ${{ inputs.platform }}
-          image-name: ${{ steps.image_name.outputs.lowercase }}/builder
-          target: builder
-          title: ${{ inputs.title }}
-          description: ${{ inputs.description }}
-          secrets: ${{ inputs.secrets }}
-
-      - name: Build and Push by digest (builder_nodejs)
-        uses: specsnl/github-actions/build-image@2.1.0
-        with:
-          dockerfile: ${{ inputs.dockerfile }}
-          platform: ${{ inputs.platform }}
-          image-name: ${{ steps.image_name.outputs.lowercase }}/builder_nodejs
-          target: builder_nodejs
-          title: ${{ inputs.title }}
-          description: ${{ inputs.description }}
-          secrets: ${{ inputs.secrets }}
+  builder_nodejs:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      platform: ${{ inputs.platform }}
+      dockerfile: ${{ inputs.dockerfile }}
+      target: builder_nodejs
+      image-name: ${{ inputs.image-name }}/builder_nodejs
+      title: ${{ inputs.title }}
+      description: ${{ inputs.description }}
+      secrets: ${{ inputs.secrets }}
+      disable-apparmor: ${{ inputs.disable-apparmor }}
