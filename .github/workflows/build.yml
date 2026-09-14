@@ -23,6 +23,10 @@ on:
         description: Build context path
         type: string
         default: .
+      target:
+        description: Name of the dockerfile target. Omit to build the default (last) stage.
+        type: string
+        required: false
       title:
         description: Custom image title (overrides repository name)
         type: string
@@ -42,7 +46,7 @@ on:
 
 jobs:
   build:
-    name: Build Image
+    name: Build Image${{ inputs.target && format(' ({0})', inputs.target) || '' }}
     runs-on: ${{ inputs.runs-on }}
     steps:
 
@@ -76,6 +80,7 @@ jobs:
           dockerfile: ${{ inputs.dockerfile }}
           context: ${{ inputs.context }}
           platform: ${{ inputs.platform }}
+          target: ${{ inputs.target }}
           image-name: ${{ steps.image_name.outputs.lowercase }}
           title: ${{ inputs.title }}
           description: ${{ inputs.description }}
