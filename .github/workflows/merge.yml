@@ -31,6 +31,10 @@ on:
         description: Additional metadata-action tag directives (multiline), forwarded to create-manifest
         type: string
         required: false
+      flavor:
+        description: metadata-action flavor directives (multiline), forwarded to create-manifest
+        type: string
+        required: false
       version:
         description: Value for org.opencontainers.image.version
         type: string
@@ -68,6 +72,7 @@ jobs:
           image-name: ${{ steps.image_name.outputs.lowercase }}
           target: ${{ inputs.target }}
           raw-tags: ${{ inputs.raw-tags }}
+          flavor: ${{ inputs.flavor }}
           raw-tag: ${{ inputs.raw-tag }}
           version: ${{ inputs.version }}
           title: ${{ inputs.title }}

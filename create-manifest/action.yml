@@ -20,6 +20,11 @@ inputs:
   raw-tags:
     description: Additional metadata-action tag directives (multiline), appended to the tags block
     required: false
+  flavor:
+    description: >-
+      metadata-action flavor directives (multiline), i.e. "latest=false" to keep a prerelease tag
+      from moving :latest, or "suffix=-alpine" to publish a variant under the same image name
+    required: false
   version:
     description: Value for org.opencontainers.image.version label and annotation
     required: false
@@ -66,6 +71,7 @@ runs:
           type=ref,event=pr
           type=raw,event=workflow_dispatch,value=${{ steps.raw_tag.outputs.lowercase }}
           ${{ inputs.raw-tags }}
+        flavor: ${{ inputs.flavor }}
         labels: |
           ${{ inputs.version != '' && format('org.opencontainers.image.version={0}', inputs.version) || '' }}
           ${{ inputs.title != '' && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
