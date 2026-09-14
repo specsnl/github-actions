@@ -39,6 +39,16 @@ on:
         description: List of secrets to expose to the build
         type: string
         required: false
+      build-args:
+        description: List of build-time variables (multiline "KEY=value")
+        type: string
+        required: false
+      push:
+        description: >-
+          Push the image to the registry by digest ("true"/"false"). Defaults to pushing, except
+          for dependabot.
+        type: string
+        required: false
       disable-apparmor:
         description: Disable AppArmor for the build
         type: boolean
@@ -85,3 +95,5 @@ jobs:
           title: ${{ inputs.title }}
           description: ${{ inputs.description }}
           secrets: ${{ inputs.secrets }}
+          build-args: ${{ inputs.build-args }}
+          push: ${{ inputs.push }}
