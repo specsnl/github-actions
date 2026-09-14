@@ -41,56 +41,35 @@ on:
         default: latest
 
 jobs:
-  merge:
-    name: Merge Images
-    runs-on: ${{ inputs.runs-on }}
-    if: ${{ github.actor != 'dependabot[bot]' }}
-    steps:
 
-      - name: Checkout
-        uses: actions/checkout@v7
+  runtime:
+    uses: ./.github/workflows/merge.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      target: runtime
+      image-name: ${{ inputs.image-name }}
+      title: ${{ inputs.title-runtime }}
+      description: ${{ inputs.description-runtime }}
+      raw-tag: ${{ inputs.raw-tag }}
 
-      - name: Image name
-        id: image_name
-        uses: ASzc/change-string-case-action@v8
-        with:
-          string: ${{ inputs.image-name }}
+  builder:
+    uses: ./.github/workflows/merge.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      target: builder
+      image-name: ${{ inputs.image-name }}/builder
+      title: ${{ inputs.title-builder }}
+      description: ${{ inputs.description-builder }}
+      raw-tag: ${{ inputs.raw-tag }}
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v4.5.2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Create Manifest (runtime)
-        uses: specsnl/github-actions/create-manifest@2.1.0
-        with:
-          image-name: ${{ steps.image_name.outputs.lowercase }}
-          target: runtime
-          description: ${{ inputs.description-runtime }}
-          title: ${{ inputs.title-runtime }}
-          raw-tag: ${{ inputs.raw-tag }}
-
-      - name: Create Manifest (builder)
-        uses: specsnl/github-actions/create-manifest@2.1.0
-        with:
-          image-name: ${{ steps.image_name.outputs.lowercase }}/builder
-          target: builder
-          description: ${{ inputs.description-builder }}
-          title: ${{ inputs.title-builder }}
-          raw-tag: ${{ inputs.raw-tag }}
-
-      - name: Create Manifest (builder_nodejs)
-        uses: specsnl/github-actions/create-manifest@2.1.0
-        with:
-          image-name: |
-            ${{ steps.image_name.outputs.lowercase }}/builder_nodejs
-            ${{ steps.image_name.outputs.lowercase }}/node
-          target: builder_nodejs
-          description: ${{ inputs.description-builder_nodejs }}
-          title: ${{ inputs.title-builder_nodejs }}
-          raw-tag: ${{ inputs.raw-tag }}
+  builder_nodejs:
+    uses: ./.github/workflows/merge.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      target: builder_nodejs
+      image-name: |
+        ${{ inputs.image-name }}/builder_nodejs
+        ${{ inputs.image-name }}/node
+      title: ${{ inputs.title-builder_nodejs }}
+      description: ${{ inputs.description-builder_nodejs }}
+      raw-tag: ${{ inputs.raw-tag }}
