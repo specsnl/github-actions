@@ -1,0 +1,88 @@
+name: Build Go CLI Image
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: Runner name i.e. default runner "ubuntu-24.04"
+        type: string
+        required: true
+      platform:
+        description: Platform i.e. "linux/amd64", "linux/arm64"
+        type: string
+        required: true
+      image-name:
+        description: Image name
+        type: string
+        required: true
+      version:
+        description: Version injected into the binary, i.e. the tag the release is cut from
+        type: string
+        required: true
+      version-build-arg:
+        description: >-
+          Name of the Dockerfile ARG the version is passed to, i.e. "SPECS_VERSION". The Dockerfile
+          owns the ldflag itself; there is no default because a wrong one fails silently and the
+          image reports its fallback version.
+        type: string
+        required: true
+      dockerfile:
+        description: Dockerfile path
+        type: string
+        default: Dockerfile
+      context:
+        description: Build context path
+        type: string
+        default: .
+      target:
+        description: >-
+          Name of the dockerfile target to publish. Omit to build the default (last) stage. The
+          consuming repository owns its stages and therefore its base image.
+        type: string
+        required: false
+      title:
+        description: Custom image title (overrides repository name)
+        type: string
+        required: false
+      description:
+        description: Custom image description (overrides repository description)
+        type: string
+        required: false
+      build-args:
+        description: Additional build-time variables (multiline "KEY=value")
+        type: string
+        required: false
+      secrets:
+        description: List of secrets to expose to the build
+        type: string
+        required: false
+      push:
+        description: >-
+          Push the image to the registry by digest ("true"/"false"). Defaults to pushing, except
+          for dependabot.
+        type: string
+        required: false
+      disable-apparmor:
+        description: Disable AppArmor for the build
+        type: boolean
+        default: false
+
+jobs:
+
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      platform: ${{ inputs.platform }}
+      dockerfile: ${{ inputs.dockerfile }}
+      context: ${{ inputs.context }}
+      target: ${{ inputs.target }}
+      image-name: ${{ inputs.image-name }}
+      title: ${{ inputs.title }}
+      description: ${{ inputs.description }}
+      secrets: ${{ inputs.secrets }}
+      push: ${{ inputs.push }}
+      disable-apparmor: ${{ inputs.disable-apparmor }}
+      build-args: |
+        ${{ inputs.version-build-arg }}=${{ inputs.version }}
+        ${{ inputs.build-args }}

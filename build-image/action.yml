@@ -26,17 +26,52 @@ inputs:
   secrets:
     description: List of secrets to expose to the build
     required: false
+  build-args:
+    description: List of build-time variables (multiline "KEY=value")
+    required: false
+  push:
+    description: >-
+      Push the image to the registry by digest. Defaults to true, except for dependabot and when
+      load is enabled.
+    required: false
+  load:
+    description: >-
+      Load the built image into the local Docker daemon instead of pushing it by digest, so it can
+      be run in a later step. Only works for a single platform.
+    default: "false"
   raw-tag:
     description: Raw tag value
     default: latest
+
+outputs:
+  image:
+    description: Reference of the image loaded into the local Docker daemon. Empty unless load is enabled.
+    value: ${{ steps.prepare.outputs.image }}
+  imageid:
+    description: ID of the built image
+    value: ${{ steps.build.outputs.imageid }}
+  digest:
+    description: Digest of the built image
+    value: ${{ steps.build.outputs.digest }}
 
 runs:
   using: composite
   steps:
 
+    - name: Raw tag
+      id: raw_tag
+      uses: ASzc/change-string-case-action@v8
+      with:
+        string: ${{ inputs.raw-tag }}
+
     - name: Prepare ${{ inputs.target }}
       shell: bash
       id: prepare
+      env:
+        PUSH: ${{ inputs.push }}
+        LOAD: ${{ inputs.load }}
+        DEFAULT_PUSH: ${{ github.actor != 'dependabot[bot]' }}
+        LOCAL_TAG: ${{ steps.raw_tag.outputs.lowercase }}
       run: |
         platform=${{ inputs.platform }}
         echo "safe_platform=${platform//\//-}" >> $GITHUB_OUTPUT
@@ -47,11 +82,25 @@ runs:
         target="${{ inputs.target }}"
         echo "safe_target=${target:-_NO_TARGET_}" >> $GITHUB_OUTPUT
 
-    - name: Raw tag
-      id: raw_tag
-      uses: ASzc/change-string-case-action@v8
-      with:
-        string: ${{ inputs.raw-tag }}
+        push="$PUSH"
+        if [ -z "$push" ]; then
+          if [ "$LOAD" = "true" ]; then
+            push=false
+          else
+            push="$DEFAULT_PUSH"
+          fi
+        fi
+
+        if [ "$LOAD" = "true" ] && [ "$push" = "true" ]; then
+          echo "::error::push and load cannot both be enabled: a build either pushes by digest or loads into the local daemon."
+          exit 1
+        fi
+
+        echo "push=$push" >> $GITHUB_OUTPUT
+
+        if [ "$LOAD" = "true" ]; then
+          echo "image=${image_name}:${LOCAL_TAG}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Docker meta ${{ inputs.target }}
       id: meta
@@ -71,20 +120,24 @@ runs:
       id: build
       uses: docker/build-push-action@v7
       with:
-        push: ${{ github.actor != 'dependabot[bot]' }}
+        push: ${{ steps.prepare.outputs.push }}
+        load: ${{ inputs.load }}
+        tags: ${{ steps.prepare.outputs.image }}
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile}}
         platforms: ${{ inputs.platform }}
         target: ${{ inputs.target }}
+        build-args: ${{ inputs.build-args }}
         labels: ${{ steps.meta.outputs.labels }}
         annotations: ${{ steps.meta.outputs.annotations }}
         provenance: false
-        outputs: type=image,name=${{ inputs.image-name }},push-by-digest=true,name-canonical=true,oci-mediatypes=true
+        outputs: ${{ inputs.load != 'true' && format('type=image,name={0},push-by-digest=true,name-canonical=true,oci-mediatypes=true', inputs.image-name) || '' }}
         cache-from: type=gha,scope=${{ inputs.dockerfile }}-${{ steps.prepare.outputs.safe_platform }}-${{ steps.prepare.outputs.safe_target }}
         cache-to: type=gha,mode=max,scope=${{ inputs.dockerfile }}-${{ steps.prepare.outputs.safe_platform }}-${{ steps.prepare.outputs.safe_target }}
         secrets: ${{ inputs.secrets }}
 
     - name: Export digest ${{ inputs.target }}
+      if: ${{ inputs.load != 'true' }}
       shell: bash
       run: |
         mkdir -p ${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}
@@ -92,6 +145,7 @@ runs:
         touch "${{ runner.temp }}/digests/${{ steps.prepare.outputs.safe_image_name }}/${{ steps.prepare.outputs.safe_target }}/${digest#sha256:}"
 
     - name: Upload digest ${{ inputs.target }}
+      if: ${{ inputs.load != 'true' }}
       uses: actions/upload-artifact@v7
       with:
         name: digests-${{ steps.prepare.outputs.safe_image_name }}-${{ steps.prepare.outputs.safe_target }}-${{ steps.prepare.outputs.safe_platform }}

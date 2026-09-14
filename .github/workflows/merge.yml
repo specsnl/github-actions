@@ -31,6 +31,10 @@ on:
         description: Additional metadata-action tag directives (multiline), forwarded to create-manifest
         type: string
         required: false
+      flavor:
+        description: metadata-action flavor directives (multiline), forwarded to create-manifest
+        type: string
+        required: false
       version:
         description: Value for org.opencontainers.image.version
         type: string
@@ -63,11 +67,12 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Create Manifest
-        uses: specsnl/github-actions/create-manifest@2.2.0
+        uses: specsnl/github-actions/create-manifest@2.3.0
         with:
           image-name: ${{ steps.image_name.outputs.lowercase }}
           target: ${{ inputs.target }}
           raw-tags: ${{ inputs.raw-tags }}
+          flavor: ${{ inputs.flavor }}
           raw-tag: ${{ inputs.raw-tag }}
           version: ${{ inputs.version }}
           title: ${{ inputs.title }}

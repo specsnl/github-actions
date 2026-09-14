@@ -1,0 +1,78 @@
+name: Merge Go CLI images to manifest
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        description: Runner name i.e. default runner "ubuntu-24.04"
+        type: string
+        required: true
+      image-name:
+        description: Image name
+        type: string
+        required: true
+      target:
+        description: Name of the dockerfile target the digests were built from.
+        type: string
+        required: false
+      variant:
+        description: >-
+          Publish this build as a variant of the same image, i.e. "alpine" tags it as
+          "<image>:1.2.3-alpine" plus a bare "<image>:alpine". Omit for the primary variant.
+        type: string
+        required: false
+      version:
+        description: Value for org.opencontainers.image.version
+        type: string
+        required: false
+      title:
+        description: Custom image title (overrides repository name)
+        type: string
+        required: false
+      description:
+        description: Custom image description (overrides repository description)
+        type: string
+        required: false
+      latest:
+        description: >-
+          Move ":latest" (or ":<variant>") to this build. Only ever applies to a stable tag, never
+          to a prerelease such as "v1.2.0-rc.1".
+        type: boolean
+        default: true
+      raw-tag:
+        description: Raw tag value
+        type: string
+        default: latest
+      raw-tags:
+        description: Additional metadata-action tag directives (multiline), appended to the tags block
+        type: string
+        required: false
+      flavor:
+        description: >-
+          Additional metadata-action flavor directives (multiline), appended after the ones this
+          workflow sets, so they override them.
+        type: string
+        required: false
+
+jobs:
+
+  merge:
+    uses: ./.github/workflows/merge.yml
+    with:
+      runs-on: ${{ inputs.runs-on }}
+      image-name: ${{ inputs.image-name }}
+      target: ${{ inputs.target }}
+      title: ${{ inputs.title }}
+      description: ${{ inputs.description }}
+      version: ${{ inputs.version }}
+      raw-tag: ${{ inputs.raw-tag }}
+      flavor: |
+        latest=false
+        ${{ inputs.variant != '' && format('suffix=-{0},onlatest=true', inputs.variant) || '' }}
+        ${{ inputs.flavor }}
+      raw-tags: |
+        type=semver,pattern={{version}}
+        type=semver,pattern={{major}}.{{minor}}
+        type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+        type=raw,value=${{ inputs.variant || 'latest' }},suffix=,enable=${{ inputs.latest && startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-') }}
+        ${{ inputs.raw-tags }}
