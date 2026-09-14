@@ -22,7 +22,9 @@ on:
         type: string
         required: false
       version:
-        description: Value for org.opencontainers.image.version
+        description: >-
+          Overrides org.opencontainers.image.version. Rarely needed — metadata-action already sets
+          that label to the version it computed, i.e. "1.2.3" for a "v1.2.3" tag.
         type: string
         required: false
       title:

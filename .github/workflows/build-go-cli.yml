@@ -16,9 +16,12 @@ on:
         type: string
         required: true
       version:
-        description: Version injected into the binary, i.e. the tag the release is cut from
+        description: >-
+          Version injected into the binary. Defaults, on a tag push, to the tag without its leading
+          "v" — the string GoReleaser injects, so an image never disagrees with the binary cut from
+          the same tag. Left empty on any other trigger, so the Dockerfile's own fallback stands.
         type: string
-        required: true
+        required: false
       version-build-arg:
         description: >-
           Name of the Dockerfile ARG the version is passed to, i.e. "SPECS_VERSION". The Dockerfile
@@ -69,7 +72,24 @@ on:
 
 jobs:
 
+  version:
+    name: Version
+    runs-on: ${{ inputs.runs-on }}
+    outputs:
+      value: ${{ steps.resolve.outputs.value }}
+    steps:
+      - id: resolve
+        env:
+          GIVEN: ${{ inputs.version }}
+        run: |
+          value="$GIVEN"
+          if [ -z "$value" ] && [ "$GITHUB_REF_TYPE" = tag ]; then
+            value="${GITHUB_REF_NAME#v}"
+          fi
+          echo "value=$value" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: version
     uses: ./.github/workflows/build.yml
     with:
       runs-on: ${{ inputs.runs-on }}
@@ -83,6 +103,8 @@ jobs:
       secrets: ${{ inputs.secrets }}
       push: ${{ inputs.push }}
       disable-apparmor: ${{ inputs.disable-apparmor }}
+      # Omitted entirely when there is no version, rather than passed empty:
+      # an empty ARG would override the Dockerfile's fallback with nothing.
       build-args: |
-        ${{ inputs.version-build-arg }}=${{ inputs.version }}
+        ${{ needs.version.outputs.value != '' && format('{0}={1}', inputs.version-build-arg, needs.version.outputs.value) || '' }}
         ${{ inputs.build-args }}
