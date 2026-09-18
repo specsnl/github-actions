@@ -74,7 +74,7 @@ jobs:
         ${{ inputs.flavor }}
       raw-tags: |
         type=semver,pattern={{version}}
-        type=semver,pattern={{major}}.{{minor}}
+        type=semver,pattern={{major}}.{{minor}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.0.') }}
         type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
         type=raw,value=${{ inputs.variant || 'latest' }},suffix=,enable=${{ inputs.latest && startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, '-') }}
         ${{ inputs.raw-tags }}
