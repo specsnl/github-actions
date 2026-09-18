@@ -21,7 +21,7 @@ permissions:
 jobs:
 
   build:
-    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.0
+    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.2
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +39,7 @@ jobs:
 
   merge:
     needs: build
-    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.0
+    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.2
     with:
       runs-on: ubuntu-24.04
       image-name: ghcr.io/specsnl/specs-cli
@@ -90,7 +90,7 @@ On top of what [`merge.yml` already emits](pipeline.md#tags):
 | Tag                          | When                                                                   |
 |------------------------------|------------------------------------------------------------------------|
 | `1.2.3`                      | Every `v*` tag, prereleases included                                   |
-| `1.2`, `1`                   | Stable tags only; `1` is skipped for `v0.*`, where it means nothing    |
+| `1.2`, `1`                   | Stable tags only; `1` is skipped for `v0.*` and `1.2` for `v0.0.*`     |
 | `latest`                     | Stable tags only — set `latest: false` to never move it                |
 | `v1.2.3`                     | From `merge.yml`'s `type=ref,event=tag`; the same digest, `v`-prefixed |
 | `main`, `pr-12`, `<raw-tag>` | From `merge.yml`, for branch, pull request and dispatch runs           |
@@ -103,6 +103,11 @@ A prerelease never moves `latest` and never publishes `1.2` or `1`:
   workflow passes `flavor: latest=false` and re-adds `latest` itself, guarded on the tag being stable.
 
 That guard treats any tag containing a `-` as a prerelease — `v1.2.0-rc.1`, `v1.2.0-beta.3`.
+
+A moving tag is a compatibility promise, so it is withheld where semver does not make one. `1` means nothing under
+`v0.*` — every minor may break. `1.2` means nothing under `v0.0.*` for the same reason one level down, since `0.0.x` is
+the range where every release is free to break. `v0.5.3` still publishes `0.5`, because patches within `0.5.x` are
+expected to be compatible.
 
 Both `flavor` and `raw-tags` are still available and are appended *after* what this workflow sets, so a caller can
 override the flavor (`latest=auto` restores the default behaviour) and add tags of its own.
@@ -118,7 +123,7 @@ Run the build and merge jobs once per variant, each with its own `target`:
 
 ```yaml
   build-alpine:
-    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.0
+    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.2
     strategy:
       fail-fast: false
       matrix:
@@ -136,7 +141,7 @@ Run the build and merge jobs once per variant, each with its own `target`:
 
   merge-alpine:
     needs: build-alpine
-    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.0
+    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.2
     with:
       runs-on: ubuntu-24.04
       image-name: ghcr.io/specsnl/specs-cli
