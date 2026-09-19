@@ -32,13 +32,25 @@ Artifacts are kept for one day. They are an implementation detail of a single ru
 
 Tagging happens entirely in phase 2, from `metadata-action`. `create-manifest` always emits:
 
-| Directive                          | Produces                                             |
-|------------------------------------|------------------------------------------------------|
-| `type=schedule`                    | `nightly` on a scheduled run                         |
-| `type=ref,event=branch`            | The branch name, i.e. `main`                         |
-| `type=ref,event=tag`               | The tag name verbatim, i.e. `v1.2.3` or `2.2.0`      |
-| `type=ref,event=pr`                | `pr-<number>`                                        |
-| `type=raw,event=workflow_dispatch` | The `raw-tag` input, lowercased, `latest` by default |
+| Directive                 | Produces                                             |
+|---------------------------|------------------------------------------------------|
+| `type=schedule`           | `nightly` on a scheduled run                         |
+| `type=ref,event=branch`   | The branch name, i.e. `main`                         |
+| `type=ref,event=tag`      | The tag name verbatim, i.e. `v1.2.3` or `2.2.0`      |
+| `type=ref,event=pr`       | `pr-<number>`                                        |
+| `type=raw`, on dispatch   | The `raw-tag` input, lowercased, `latest` by default |
+
+That last one is filtered with `enable=${{ github.event_name == 'workflow_dispatch' }}`, not
+`event=workflow_dispatch`. `event=` belongs to `type=ref`; `type=raw` takes only `enable`, `priority`, `prefix`,
+`suffix` and `value`. An `event=` written on a `type=raw` directive does not fail — metadata-action ignores the
+attribute it does not know, and the tag silently becomes unconditional. That is worth remembering when editing
+either tags block: the mistake has no symptom until a tag lands somewhere it should not.
+
+`build-image` carries the same directive, where it has no effect on the registry — that build pushes by digest, so
+its computed tags are never applied. It is the only directive in that block, so what it does decide is
+`org.opencontainers.image.version` on the per-architecture images. Filtered to dispatch runs, tag and branch builds
+now leave that label unset and `metadata-action` logs `No Docker tag has been generated`. `build-image` takes no
+`version` input, so there is nothing truer to put there; the manifest gets its own version from `create-manifest`.
 
 Two inputs extend that:
 
@@ -51,6 +63,10 @@ Two inputs extend that:
 `type=ref,event=tag` match sets it — for *any* tag, prereleases included. If you publish an `-rc` channel, pass
 `flavor: latest=false` and add your own guarded `latest` tag through `raw-tags`, which is what
 [`merge-go-cli.yml`](go-cli.md) does.
+
+Note that `flavor: latest=false` only governs the implicit `:latest` that `type=ref` and `type=semver` bring with
+them. It has no effect on an explicit `type=raw,value=latest`, which is why the dispatch directive above needs a
+filter of its own rather than relying on the flavor.
 
 ## Labels and annotations
 

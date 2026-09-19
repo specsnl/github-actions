@@ -69,7 +69,7 @@ runs:
           type=ref,event=branch
           type=ref,event=tag
           type=ref,event=pr
-          type=raw,event=workflow_dispatch,value=${{ steps.raw_tag.outputs.lowercase }}
+          type=raw,value=${{ steps.raw_tag.outputs.lowercase }},enable=${{ github.event_name == 'workflow_dispatch' }}
           ${{ inputs.raw-tags }}
         flavor: ${{ inputs.flavor }}
         labels: |
