@@ -21,7 +21,7 @@ permissions:
 jobs:
 
   build:
-    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.2
+    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.3
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +39,7 @@ jobs:
 
   merge:
     needs: build
-    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.2
+    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.3
     with:
       runs-on: ubuntu-24.04
       image-name: ghcr.io/specsnl/specs-cli
@@ -123,7 +123,7 @@ Run the build and merge jobs once per variant, each with its own `target`:
 
 ```yaml
   build-alpine:
-    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.2
+    uses: specsnl/github-actions/.github/workflows/build-go-cli.yml@2.4.3
     strategy:
       fail-fast: false
       matrix:
@@ -141,7 +141,7 @@ Run the build and merge jobs once per variant, each with its own `target`:
 
   merge-alpine:
     needs: build-alpine
-    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.2
+    uses: specsnl/github-actions/.github/workflows/merge-go-cli.yml@2.4.3
     with:
       runs-on: ubuntu-24.04
       image-name: ghcr.io/specsnl/specs-cli

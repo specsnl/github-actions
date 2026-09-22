@@ -3,7 +3,7 @@
 This repository contains the Specsnl organisation collection of GitHub Actions workflows and composite actions that can
 be reused to automate various tasks in GitHub repositories.
 
-Consumers pin by tag, i.e. `specsnl/github-actions/.github/workflows/build.yml@2.4.2`.
+Consumers pin by tag, i.e. `specsnl/github-actions/.github/workflows/build.yml@2.4.3`.
 
 ## What is in here
 
