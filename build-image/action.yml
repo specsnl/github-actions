@@ -108,7 +108,7 @@ runs:
       with:
         images: ${{ inputs.image-name }}
         tags: |
-          type=raw,event=workflow_dispatch,value=${{ steps.raw_tag.outputs.lowercase }}
+          type=raw,value=${{ steps.raw_tag.outputs.lowercase }},enable=${{ github.event_name == 'workflow_dispatch' }}
         labels: |
           ${{ inputs.title != '' && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
