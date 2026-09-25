@@ -8,7 +8,7 @@ what name.
 jobs:
 
   build:
-    uses: specsnl/github-actions/.github/workflows/build-php.yml@2.4.3
+    uses: specsnl/github-actions/.github/workflows/build-php.yml@2.4.4
     strategy:
       fail-fast: false
       matrix:
@@ -24,7 +24,7 @@ jobs:
 
   merge:
     needs: build
-    uses: specsnl/github-actions/.github/workflows/merge-php.yml@2.4.3
+    uses: specsnl/github-actions/.github/workflows/merge-php.yml@2.4.4
     with:
       runs-on: ubuntu-24.04
       image-name: ghcr.io/${{ github.repository }}

@@ -9,7 +9,7 @@ Both assume the job has already checked out, logged in to the registry and set u
 ## `build-image`
 
 ```yaml
-- uses: specsnl/github-actions/build-image@2.4.3
+- uses: specsnl/github-actions/build-image@2.4.4
 ```
 
 | Input         | Default    | Description                                                                            |
@@ -42,7 +42,7 @@ about conflicting outputs. With `load` on, the digest export and artifact upload
 ## `create-manifest`
 
 ```yaml
-- uses: specsnl/github-actions/create-manifest@2.4.3
+- uses: specsnl/github-actions/create-manifest@2.4.4
 ```
 
 | Input         | Default    | Description                                                                                |

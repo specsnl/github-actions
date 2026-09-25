@@ -21,7 +21,7 @@ jobs:
       - uses: docker/setup-buildx-action@v4
 
       - id: build
-        uses: specsnl/github-actions/build-image@2.4.3
+        uses: specsnl/github-actions/build-image@2.4.4
         with:
           platform: linux/amd64
           image-name: ghcr.io/specsnl/specs-cli
