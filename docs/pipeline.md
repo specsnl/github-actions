@@ -88,6 +88,8 @@ Dependabot pull requests only ever build; they never publish.
 
 - The registry login step in `build.yml` is skipped.
 - `build-image` defaults `push` to false, so the build runs but writes nothing to the registry.
-- The whole `merge.yml` job is skipped, so nothing is tagged.
+- `merge.yml` defaults `push` to false too, so its job runs but skips every step and nothing is tagged. It is not
+  skipped as a whole job: GitHub would report that under its unevaluated name, and a required `Merge Images` check would
+  never pass.
 
 The point is that the build itself still has to succeed before a dependency bump can be merged.
