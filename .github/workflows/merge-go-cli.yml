@@ -55,6 +55,12 @@ on:
           workflow sets, so they override them.
         type: string
         required: false
+      push:
+        description: >-
+          Create and push the manifest ("true"/"false"). Must match the build's push. Defaults to
+          pushing, except for dependabot.
+        type: string
+        required: false
 
 jobs:
 
@@ -68,6 +74,7 @@ jobs:
       description: ${{ inputs.description }}
       version: ${{ inputs.version }}
       raw-tag: ${{ inputs.raw-tag }}
+      push: ${{ inputs.push }}
       flavor: |
         latest=false
         ${{ inputs.variant != '' && format('suffix=-{0},onlatest=true', inputs.variant) || '' }}

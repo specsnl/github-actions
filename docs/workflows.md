@@ -27,7 +27,8 @@ The registry login step is skipped for dependabot, which is why `push` defaults 
 ## `merge.yml`
 
 Merges the digests from `build.yml` into one tagged multi-arch manifest. Run it once, with `needs:` on the build job.
-Skipped entirely for dependabot.
+When `push` is off — by default for dependabot — the job still runs but skips every step, so a required `Merge Images`
+check reports success.
 
 | Input         | Type   | Default    | Description                                                          |
 |---------------|--------|------------|----------------------------------------------------------------------|
@@ -40,6 +41,7 @@ Skipped entirely for dependabot.
 | `raw-tag`     | string | `latest`   | Tag used on `workflow_dispatch` runs                                 |
 | `raw-tags`    | string | —          | Extra `metadata-action` tag directives (multiline), appended         |
 | `flavor`      | string | —          | `metadata-action` flavor directives (multiline), i.e. `latest=false` |
+| `push`        | string | —          | `"true"` / `"false"`; defaults to pushing, except for dependabot     |
 
 See [How the image pipeline works](pipeline.md#tags) for what gets tagged by default.
 
@@ -112,6 +114,7 @@ Fans out into one `merge.yml` call per PHP stage.
 | `raw-tag`     | string  | `latest`   | Tag used on `workflow_dispatch` runs                                      |
 | `raw-tags`    | string  | —          | Extra tag directives, appended after this workflow's                      |
 | `flavor`      | string  | —          | Extra flavor directives, appended after this workflow's, so they override |
+| `push`        | string  | —          | `"true"` / `"false"`; defaults to pushing, except for dependabot          |
 
 ## `notify-slack-tag.yml`
 
