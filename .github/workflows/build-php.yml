@@ -63,16 +63,3 @@ jobs:
       description: ${{ inputs.description }}
       secrets: ${{ inputs.secrets }}
       disable-apparmor: ${{ inputs.disable-apparmor }}
-
-  builder_nodejs:
-    uses: ./.github/workflows/build.yml
-    with:
-      runs-on: ${{ inputs.runs-on }}
-      platform: ${{ inputs.platform }}
-      dockerfile: ${{ inputs.dockerfile }}
-      target: builder_nodejs
-      image-name: ${{ inputs.image-name }}/builder_nodejs
-      title: ${{ inputs.title }}
-      description: ${{ inputs.description }}
-      secrets: ${{ inputs.secrets }}
-      disable-apparmor: ${{ inputs.disable-apparmor }}
