@@ -27,14 +27,6 @@ on:
         description: Custom image description for builder (overrides repository description)
         type: string
         required: false
-      title-builder_nodejs:
-        description: Custom image title for builder_nodejs (overrides repository name)
-        type: string
-        required: false
-      description-builder_nodejs:
-        description: Custom image description for builder_nodejs (overrides repository description)
-        type: string
-        required: false
       raw-tag:
         description: Raw tag value
         type: string
@@ -57,19 +49,10 @@ jobs:
     with:
       runs-on: ${{ inputs.runs-on }}
       target: builder
-      image-name: ${{ inputs.image-name }}/builder
-      title: ${{ inputs.title-builder }}
-      description: ${{ inputs.description-builder }}
-      raw-tag: ${{ inputs.raw-tag }}
-
-  builder_nodejs:
-    uses: ./.github/workflows/merge.yml
-    with:
-      runs-on: ${{ inputs.runs-on }}
-      target: builder_nodejs
       image-name: |
+        ${{ inputs.image-name }}/builder
         ${{ inputs.image-name }}/builder_nodejs
         ${{ inputs.image-name }}/node
-      title: ${{ inputs.title-builder_nodejs }}
-      description: ${{ inputs.description-builder_nodejs }}
+      title: ${{ inputs.title-builder }}
+      description: ${{ inputs.description-builder }}
       raw-tag: ${{ inputs.raw-tag }}

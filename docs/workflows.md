@@ -55,8 +55,8 @@ Fans out into one `build.yml` call per PHP stage. See [PHP images](php.md).
 | `platform`         | string  | *required*   | Platform                                       |
 | `image-name`       | string  | *required*   | Base image name; stages nest under it          |
 | `dockerfile`       | string  | `Dockerfile` | Dockerfile path                                |
-| `title`            | string  | —            | Applied to all three stages                    |
-| `description`      | string  | —            | Applied to all three stages                    |
+| `title`            | string  | —            | Applied to both stages                         |
+| `description`      | string  | —            | Applied to both stages                         |
 | `secrets`          | string  | —            | Secrets to expose to the build                 |
 | `disable-apparmor` | boolean | `false`      | Disable AppArmor on the runner before building |
 
@@ -64,17 +64,15 @@ Fans out into one `build.yml` call per PHP stage. See [PHP images](php.md).
 
 Fans out into one `merge.yml` call per PHP stage.
 
-| Input                        | Type   | Default    | Description                        |
-|------------------------------|--------|------------|------------------------------------|
-| `runs-on`                    | string | *required* | Runner name                        |
-| `image-name`                 | string | *required* | Base image name                    |
-| `title-runtime`              | string | —          | Title for the runtime image        |
-| `description-runtime`        | string | —          | Description for the runtime image  |
-| `title-builder`              | string | —          | Title for the builder image        |
-| `description-builder`        | string | —          | Description for the builder image  |
-| `title-builder_nodejs`       | string | —          | Title for the nodejs builder image |
-| `description-builder_nodejs` | string | —          | Description for the nodejs builder |
-| `raw-tag`                    | string | `latest`   | Tag used on `workflow_dispatch`    |
+| Input                 | Type   | Default    | Description                       |
+|-----------------------|--------|------------|-----------------------------------|
+| `runs-on`             | string | *required* | Runner name                       |
+| `image-name`          | string | *required* | Base image name                   |
+| `title-runtime`       | string | —          | Title for the runtime image       |
+| `description-runtime` | string | —          | Description for the runtime image |
+| `title-builder`       | string | —          | Title for the builder image       |
+| `description-builder` | string | —          | Description for the builder image |
+| `raw-tag`             | string | `latest`   | Tag used on `workflow_dispatch`   |
 
 ## `build-go-cli.yml`
 
