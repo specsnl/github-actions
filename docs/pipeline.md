@@ -22,7 +22,7 @@ Run the build job once per platform (a matrix) and the merge job once, with `nee
 The artifact is named `digests-<image-name>-<target>-<platform>`, with `/` replaced by `-` and an absent target
 recorded as `_NO_TARGET_`. The merge job downloads with the pattern `digests-<image-name>-<target>-*`.
 
-That namespacing is what lets a single run publish several images without them bleeding into each other — the three
+That namespacing is what lets a single run publish several images without them bleeding into each other — the two
 PHP stages, or a `debian` and an `alpine` variant of the same CLI. Each build/merge pair only ever sees its own
 digests.
 
@@ -80,7 +80,7 @@ whether a tool reads the index or the descriptor pointing at it.
 
 `create-manifest` accepts a multiline `image-name`. The first line is the primary name — the one the digests were
 pushed under and the one the inspect step reports — and every line is tagged from the same manifest. `merge-php.yml`
-uses this to publish `builder_nodejs` under a shorter `node` alias as well.
+uses this to publish the builder under its old `builder_nodejs` and `node` names as well.
 
 ## What dependabot gets
 
