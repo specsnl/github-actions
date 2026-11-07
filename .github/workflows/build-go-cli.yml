@@ -100,6 +100,7 @@ jobs:
       image-name: ${{ inputs.image-name }}
       title: ${{ inputs.title }}
       description: ${{ inputs.description }}
+      version: ${{ needs.version.outputs.value }}
       secrets: ${{ inputs.secrets }}
       push: ${{ inputs.push }}
       disable-apparmor: ${{ inputs.disable-apparmor }}
