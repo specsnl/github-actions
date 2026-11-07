@@ -42,6 +42,12 @@ inputs:
   raw-tag:
     description: Raw tag value
     default: latest
+  version:
+    description: >-
+      Value for the org.opencontainers.image.version label and annotation. Defaults to the version
+      metadata-action derives from the ref; pass the same value as to create-manifest when that one
+      uses raw-tags or flavor.
+    required: false
 
 outputs:
   image:
@@ -108,13 +114,33 @@ runs:
       with:
         images: ${{ inputs.image-name }}
         tags: |
+          type=schedule
+          type=ref,event=branch
+          type=ref,event=tag
+          type=ref,event=pr
           type=raw,value=${{ steps.raw_tag.outputs.lowercase }},enable=${{ github.event_name == 'workflow_dispatch' }}
         labels: |
+          ${{ inputs.version != '' && format('org.opencontainers.image.version={0}', inputs.version) || '' }}
           ${{ inputs.title != '' && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
         annotations: |
+          ${{ inputs.version != '' && format('org.opencontainers.image.version={0}', inputs.version) || '' }}
           ${{ inputs.title != '' && format('org.opencontainers.image.title={0}', inputs.title) || '' }}
           ${{ inputs.description != '' && format('org.opencontainers.image.description={0}', inputs.description) || '' }}
+
+    - name: Drop empty metadata ${{ inputs.target }}
+      id: metadata
+      shell: bash
+      run: |
+        delimiter="EOF_$(openssl rand -hex 16)"
+        {
+          echo "labels<<$delimiter"
+          jq -r '.labels | to_entries[] | select(.value != "") | .key + "=" + .value' <<< "$DOCKER_METADATA_OUTPUT_JSON"
+          echo "$delimiter"
+          echo "annotations<<$delimiter"
+          jq -r '.annotations[] | select(endswith("=") | not)' <<< "$DOCKER_METADATA_OUTPUT_JSON"
+          echo "$delimiter"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Build and push by digest ${{ inputs.target }}
       id: build
@@ -128,8 +154,8 @@ runs:
         platforms: ${{ inputs.platform }}
         target: ${{ inputs.target }}
         build-args: ${{ inputs.build-args }}
-        labels: ${{ steps.meta.outputs.labels }}
-        annotations: ${{ steps.meta.outputs.annotations }}
+        labels: ${{ steps.metadata.outputs.labels }}
+        annotations: ${{ steps.metadata.outputs.annotations }}
         provenance: false
         outputs: ${{ inputs.load != 'true' && format('type=image,name={0},push-by-digest=true,name-canonical=true,oci-mediatypes=true', inputs.image-name) || '' }}
         cache-from: type=gha,scope=${{ inputs.dockerfile }}-${{ steps.prepare.outputs.safe_platform }}-${{ steps.prepare.outputs.safe_target }}

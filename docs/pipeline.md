@@ -46,11 +46,15 @@ That last one is filtered with `enable=${{ github.event_name == 'workflow_dispat
 attribute it does not know, and the tag silently becomes unconditional. That is worth remembering when editing
 either tags block: the mistake has no symptom until a tag lands somewhere it should not.
 
-`build-image` carries the same directive, where it has no effect on the registry — that build pushes by digest, so
-its computed tags are never applied. It is the only directive in that block, so what it does decide is
-`org.opencontainers.image.version` on the per-architecture images. Filtered to dispatch runs, tag and branch builds
-now leave that label unset and `metadata-action` logs `No Docker tag has been generated`. `build-image` takes no
-`version` input, so there is nothing truer to put there; the manifest gets its own version from `create-manifest`.
+`build-image` carries the same five directives, where they have no effect on the registry — that build pushes by
+digest, so its computed tags are never applied. What they do decide is `org.opencontainers.image.version` on the
+per-platform manifests and image configs. `imagetools create` cannot change those after the fact, as they are
+addressed by their digest, so the version has to be right when they are built.
+
+`raw-tags` and `flavor` below exist only on `create-manifest`. When you use them, the version the merge derives can
+differ from the build's — a `type=semver` tag turns `v1.2.3` into `1.2.3`, a `suffix=-alpine` appends to it. Pass the
+same `version` to both the build and the merge to keep them identical; [`build-go-cli.yml` and
+`merge-go-cli.yml`](go-cli.md) do that for you.
 
 Two inputs extend that:
 
@@ -73,8 +77,10 @@ filter of its own rather than relying on the flavor.
 `title`, `description` and `version` override the corresponding `org.opencontainers.image.*` values. Anything left
 empty falls back to what `metadata-action` derives from the repository.
 
+`build-image` writes them as labels on the image config and as annotations on the per-platform manifest.
 `create-manifest` applies them to the manifest as both `index:` and `manifest-descriptor:` annotations, so they show up
-whether a tool reads the index or the descriptor pointing at it.
+whether a tool reads the index or the descriptor pointing at it. Both drop a key whose value is empty instead of
+writing `key=`, so an event without a derived version leaves `org.opencontainers.image.version` out altogether.
 
 ## Several image names for one manifest
 

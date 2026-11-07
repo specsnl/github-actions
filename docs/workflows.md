@@ -17,6 +17,7 @@ Builds one platform and pushes it by digest. Run it once per platform.
 | `target`           | string  | —            | Dockerfile stage to build; omit for the default (last) stage     |
 | `title`            | string  | —            | Overrides `org.opencontainers.image.title`                       |
 | `description`      | string  | —            | Overrides `org.opencontainers.image.description`                 |
+| `version`          | string  | —            | Sets `org.opencontainers.image.version`; match `merge.yml`'s     |
 | `secrets`          | string  | —            | Secrets to expose to the build (multiline)                       |
 | `build-args`       | string  | —            | Build-time variables (multiline `KEY=value`)                     |
 | `push`             | string  | —            | `"true"` / `"false"`; defaults to pushing, except for dependabot |
@@ -105,7 +106,7 @@ Fans out into one `merge.yml` call per PHP stage.
 | `image-name`  | string  | *required* | Image name                                                                |
 | `target`      | string  | —          | The target the digests were built from                                    |
 | `variant`     | string  | —          | Publish as a tag-suffixed variant, i.e. `alpine`                          |
-| `version`     | string  | —          | Sets `org.opencontainers.image.version`                                   |
+| `version`     | string  | —          | Sets `org.opencontainers.image.version`; defaults to the tag without `v`  |
 | `title`       | string  | —          | Overrides `org.opencontainers.image.title`                                |
 | `description` | string  | —          | Overrides `org.opencontainers.image.description`                          |
 | `latest`      | boolean | `true`     | Move `:latest` (or `:<variant>`); only ever applies to a stable tag       |
