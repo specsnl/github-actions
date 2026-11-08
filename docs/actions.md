@@ -9,7 +9,7 @@ Both assume the job has already checked out, logged in to the registry and set u
 ## `build-image`
 
 ```yaml
-- uses: specsnl/github-actions/build-image@3.0.0
+- uses: specsnl/github-actions/build-image@3.0.2
 ```
 
 | Input         | Default    | Description                                                                            |
@@ -48,7 +48,7 @@ same `version` to both, or the per-platform images and the index can disagree.
 ## `create-manifest`
 
 ```yaml
-- uses: specsnl/github-actions/create-manifest@3.0.0
+- uses: specsnl/github-actions/create-manifest@3.0.2
 ```
 
 | Input         | Default    | Description                                                                                |
