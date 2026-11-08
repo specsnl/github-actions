@@ -79,9 +79,10 @@ in a [pull-request guard](testing-images.md) so that stays impossible to ship.
 
 Anything else the Dockerfile needs goes through `build-args`, which is appended to the version arg.
 
-`merge-go-cli.yml` needs no `version` either: `metadata-action` already labels the image
-`org.opencontainers.image.version` with the version it computed. The input is there to override that, which is rarely
-what anyone wants.
+The same version is written to `org.opencontainers.image.version` on the per-platform images. `merge-go-cli.yml`
+resolves its own `version` input the same way and stamps it on the index, so all of them agree — including a variant,
+where the index reports `1.2.3` rather than the `1.2.3-alpine` tag. If you pass `version` to one shim, pass the same
+value to the other.
 
 ## Tags
 

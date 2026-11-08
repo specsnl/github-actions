@@ -26,6 +26,7 @@ Both assume the job has already checked out, logged in to the registry and set u
 | `push`        | —          | `"true"` / `"false"`; defaults to pushing, except for dependabot and when `load` is on |
 | `load`        | `"false"`  | Load the image into the local Docker daemon instead of pushing it by digest            |
 | `raw-tag`     | `latest`   | Tag used on `workflow_dispatch` runs, and as the local tag when `load` is on           |
+| `version`     | —          | Sets `org.opencontainers.image.version`; defaults to the version derived from the ref  |
 
 | Output    | Description                                                                                       |
 |-----------|---------------------------------------------------------------------------------------------------|
@@ -38,6 +39,11 @@ character in it will be rejected by the registry.
 
 `push` and `load` cannot both be true; the action fails with an explicit error rather than letting buildx complain
 about conflicting outputs. With `load` on, the digest export and artifact upload are skipped.
+
+The action derives tags with the same default directives as `create-manifest`, only to get
+`org.opencontainers.image.version` for the labels and annotations; nothing is pushed under them. With `load` on, the
+image is tagged only with the `image` output. If the matching `create-manifest` uses `raw-tags` or `flavor`, pass the
+same `version` to both, or the per-platform images and the index can disagree.
 
 ## `create-manifest`
 

@@ -35,6 +35,12 @@ on:
         description: Custom image description (overrides repository description)
         type: string
         required: false
+      version:
+        description: >-
+          Value for org.opencontainers.image.version. Defaults to the version derived from the ref;
+          pass the same value as to merge.yml when that one uses raw-tags or flavor.
+        type: string
+        required: false
       secrets:
         description: List of secrets to expose to the build
         type: string
@@ -94,6 +100,7 @@ jobs:
           image-name: ${{ steps.image_name.outputs.lowercase }}
           title: ${{ inputs.title }}
           description: ${{ inputs.description }}
+          version: ${{ inputs.version }}
           secrets: ${{ inputs.secrets }}
           build-args: ${{ inputs.build-args }}
           push: ${{ inputs.push }}

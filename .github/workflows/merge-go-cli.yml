@@ -64,7 +64,26 @@ on:
 
 jobs:
 
+  # Resolved the same way as build-go-cli.yml, so the index and the per-platform images carry the
+  # same org.opencontainers.image.version even when the variant suffix is set.
+  version:
+    name: Version
+    runs-on: ${{ inputs.runs-on }}
+    outputs:
+      value: ${{ steps.resolve.outputs.value }}
+    steps:
+      - id: resolve
+        env:
+          GIVEN: ${{ inputs.version }}
+        run: |
+          value="$GIVEN"
+          if [ -z "$value" ] && [ "$GITHUB_REF_TYPE" = tag ]; then
+            value="${GITHUB_REF_NAME#v}"
+          fi
+          echo "value=$value" >> "$GITHUB_OUTPUT"
+
   merge:
+    needs: version
     uses: ./.github/workflows/merge.yml
     with:
       runs-on: ${{ inputs.runs-on }}
@@ -72,7 +91,7 @@ jobs:
       target: ${{ inputs.target }}
       title: ${{ inputs.title }}
       description: ${{ inputs.description }}
-      version: ${{ inputs.version }}
+      version: ${{ needs.version.outputs.value }}
       raw-tag: ${{ inputs.raw-tag }}
       push: ${{ inputs.push }}
       flavor: |
