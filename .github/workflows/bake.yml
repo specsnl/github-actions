@@ -157,7 +157,7 @@ jobs:
         if: ${{ inputs.specs-file != '' }}
         env:
           SPECS_FILE: ${{ inputs.specs-file }}
-          SPECS_HCL_SHA256: aff6f204fd37325f5d0764a9b073608f35f9f87fe3e922a0259724084948e7cd
+          SPECS_HCL_SHA256: 614358730448525dc70538f509930a0e0c85b21f0d6d8f04016ac1089797d4c8
         run: |
           if [ ! -f "$SPECS_FILE" ]; then
             echo "::error::$SPECS_FILE not found. Copy bake/specs.hcl from specsnl/github-actions at the version of bake.yml you use, or set specs-file to an empty string."
@@ -167,6 +167,23 @@ jobs:
           if [ "$actual" != "$SPECS_HCL_SHA256" ]; then
             echo "::warning file=$SPECS_FILE::$SPECS_FILE differs from bake/specs.hcl at the version of bake.yml you use. Copy that file over it."
           fi
+
+      - name: Read the repository
+        id: repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY" > "$RUNNER_TEMP/repository.json"
+          delimiter="EOF_$(openssl rand -hex 16)"
+          {
+            echo "name<<$delimiter"
+            jq -r '.name' "$RUNNER_TEMP/repository.json"
+            echo "$delimiter"
+            echo "description<<$delimiter"
+            jq -r '.description // ""' "$RUNNER_TEMP/repository.json"
+            echo "$delimiter"
+            echo "license=$(jq -r '.license.spdx_id // "" | select(. != "NOASSERTION")' "$RUNNER_TEMP/repository.json")"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Freeze the bake definition
         id: freeze
@@ -186,6 +203,9 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REVISION: ${{ github.sha }}
           SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          REPOSITORY_NAME: ${{ steps.repository.outputs.name }}
+          REPOSITORY_DESCRIPTION: ${{ steps.repository.outputs.description }}
+          LICENSES: ${{ steps.repository.outputs.license }}
         run: |
           trim() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d'; }
 
