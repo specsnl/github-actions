@@ -35,3 +35,7 @@ jobs:
           persist-credentials: false
       - name: Run the specs.hcl fixture tests
         run: bake/test/run.sh
+      - name: Run the plan job tests
+        run: bake/test/plan.sh
+      - name: Check SPECS_HCL_SHA256
+        run: bake/test/specs-hash.sh
