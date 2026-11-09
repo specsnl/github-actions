@@ -62,9 +62,9 @@ and each workflow keeps one job:
 jobs:
   image:
     uses: specsnl/github-actions/.github/workflows/bake.yml@4.0.0
-    with:
-      runners: '{"linux/amd64": "ubuntu-26.04", "linux/arm64": "ubuntu-26.04-arm"}'
 ```
+
+The runners `ubuntu-26.04` and `ubuntu-26.04-arm` are the defaults, so the runner matrix disappears entirely.
 
 The PHP and Go CLI repositories follow the same pattern with the [PHP](bake.md#a-php-image) and
 [Go CLI](bake.md#a-go-cli-with-variants) examples. For `specsnl/php84` that turns a build matrix of three Dockerfiles

@@ -28,12 +28,12 @@ Builds and publishes every target of the consumer's bake files. See [Building im
 | `version` | The `VERSION` the images were built with              |
 | `push`    | Whether the images were pushed (`"true"` / `"false"`) |
 
-The default runners are `ubuntu-24.04` for `linux/amd64` and `ubuntu-24.04-arm` for `linux/arm64`. A platform without
+The default runners are `ubuntu-26.04` for `linux/amd64` and `ubuntu-26.04-arm` for `linux/arm64`. A platform without
 a runner fails the plan job. A runner may be a label or a list of labels:
 
 ```yaml
     with:
-      runners: '{"linux/amd64": "ubuntu-26.04", "linux/arm64": ["self-hosted", "arm64"]}'
+      runners: '{"linux/arm64": ["self-hosted", "arm64"]}'
 ```
 
 A build secret's value must fit on one line. The bake file refers to it by its name:
@@ -50,10 +50,10 @@ permissions:
 
 | Job       | Check name         | Runs on                      |
 |-----------|--------------------|------------------------------|
-| `plan`    | `Plan`             | `ubuntu-24.04`               |
+| `plan`    | `Plan`             | `ubuntu-26.04`               |
 | `build`   | `Build <platform>` | The platform's runner        |
-| `publish` | `Publish`          | `ubuntu-24.04`, when pushing |
-| `status`  | `Image`            | `ubuntu-24.04`, always       |
+| `publish` | `Publish`          | `ubuntu-26.04`, when pushing |
+| `status`  | `Image`            | `ubuntu-26.04`, always       |
 
 Require only `Image`.
 
@@ -64,7 +64,7 @@ channel.
 
 | Input     | Type   | Default        | Description |
 |-----------|--------|----------------|-------------|
-| `runs-on` | string | `ubuntu-24.04` | Runner name |
+| `runs-on` | string | `ubuntu-26.04` | Runner name |
 
 | Secret              | Required | Description                |
 |---------------------|----------|----------------------------|
