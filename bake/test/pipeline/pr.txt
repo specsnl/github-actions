@@ -9,7 +9,7 @@ EOF
 == summary summary
 ### Bake definition
 
-Version `pr-42`, push `false`.
+Version `pr-42`, push `false`, `SOURCE_DATE_EPOCH` 1762689600 (2026-11-09T12:00:00Z).
 
 | Target | Platforms | Tags |
 |--------|-----------|------|
@@ -40,6 +40,9 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
         "manifest:org.opencontainers.image.version=pr-42"
       ],
+      "args": {
+        "SOURCE_DATE_EPOCH": "1762689600"
+      },
       "context": "bake/test/e2e",
       "dockerfile": "Dockerfile",
       "labels": {
@@ -79,7 +82,8 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.version=pr-42"
       ],
       "args": {
-        "E2E_VERSION": "pr-42"
+        "E2E_VERSION": "pr-42",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "context": "bake/test/e2e",
       "dockerfile": "Dockerfile",
@@ -113,7 +117,8 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.version=pr-42"
       ],
       "args": {
-        "E2E_VERSION": "pr-42"
+        "E2E_VERSION": "pr-42",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "context": "bake/test/e2e",
       "dockerfile": "Dockerfile",
@@ -239,6 +244,9 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
         "manifest:org.opencontainers.image.version=pr-42"
       ],
+      "args": {
+        "SOURCE_DATE_EPOCH": "1762689600"
+      },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-amd64"
       ],
@@ -283,7 +291,8 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.version=pr-42"
       ],
       "args": {
-        "E2E_VERSION": "pr-42"
+        "E2E_VERSION": "pr-42",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-alpine-linux-amd64"
@@ -323,7 +332,8 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.version=pr-42"
       ],
       "args": {
-        "E2E_VERSION": "pr-42"
+        "E2E_VERSION": "pr-42",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-amd64"
@@ -376,6 +386,9 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
         "manifest:org.opencontainers.image.version=pr-42"
       ],
+      "args": {
+        "SOURCE_DATE_EPOCH": "1762689600"
+      },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-arm64"
       ],
@@ -420,7 +433,8 @@ Version `pr-42`, push `false`.
         "manifest:org.opencontainers.image.version=pr-42"
       ],
       "args": {
-        "E2E_VERSION": "pr-42"
+        "E2E_VERSION": "pr-42",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-arm64"

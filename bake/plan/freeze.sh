@@ -42,7 +42,7 @@ output artifact "bake-$(printf '%s\n' "${FILES:-}" "${TARGETS:-}" | sha256sum | 
 {
   echo '### Bake definition'
   echo
-  echo "Version \`${VERSION:-}\`, push \`$PUSH\`."
+  echo "Version \`${VERSION:-}\`, push \`$PUSH\`, \`SOURCE_DATE_EPOCH\` ${SOURCE_DATE_EPOCH:-} (${CREATED:-})."
   echo
   echo '| Target | Platforms | Tags |'
   echo '|--------|-----------|------|'

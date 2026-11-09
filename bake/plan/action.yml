@@ -44,10 +44,16 @@ runs:
   using: composite
   steps:
 
+    - name: Read the commit time
+      id: epoch
+      shell: bash
+      run: echo "value=$(git log -1 --pretty=%ct)" >> "$GITHUB_OUTPUT"
+
     - name: Work out the run's variables
       id: vars
       shell: bash
       env:
+        SOURCE_DATE_EPOCH: ${{ steps.epoch.outputs.value }}
         INPUT_VERSION: ${{ inputs.version }}
         INPUT_DISPATCH_TAG: ${{ inputs.dispatch-tag }}
         INPUT_PUSH: ${{ inputs.push }}
@@ -75,6 +81,7 @@ runs:
         DISPATCH_TAG: ${{ steps.vars.outputs.dispatch-tag }}
         IS_STABLE: ${{ steps.vars.outputs.is-stable }}
         CREATED: ${{ steps.vars.outputs.created }}
+        SOURCE_DATE_EPOCH: ${{ steps.vars.outputs.source-date-epoch }}
         EVENT: ${{ github.event_name }}
         REF_TYPE: ${{ github.ref_type }}
         REF_NAME: ${{ github.ref_name }}

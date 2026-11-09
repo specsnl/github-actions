@@ -35,7 +35,7 @@ run() {
     vars+=("$line")
   done < "$case_file"
   env -i PATH="$work/bin:$PATH" HOME="$HOME" RUNNER_TEMP="$dir" GITHUB_OUTPUT="$dir/output" \
-    GITHUB_STEP_SUMMARY="$dir/summary" DOCKER_LOG="$dir/docker" "${vars[@]}" "$@"
+    GITHUB_STEP_SUMMARY="$dir/summary" DOCKER_LOG="$dir/docker" SOURCE_DATE_EPOCH=1762689600 "${vars[@]}" "$@"
 }
 
 # section <title> <file...>
