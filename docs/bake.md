@@ -45,25 +45,43 @@ EVENT=push REF_TYPE=tag VERSION=1.2.3 \
   docker buildx bake -f .specs.hcl -f docker-bake.hcl --print
 ```
 
+To build the same image CI builds, bit for bit, set the commit time the way the plan job does (see
+[Reproducible images](pipeline.md#reproducible-images)) and write the image with `rewrite-timestamp=true`:
+
+```bash
+export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+export CREATED=$(TZ=UTC printf '%(%Y-%m-%dT%H:%M:%SZ)T' "$SOURCE_DATE_EPOCH")
+docker buildx bake -f .specs.hcl -f docker-bake.hcl --no-cache \
+  --set '*.output=type=image,push=false,oci-mediatypes=true,rewrite-timestamp=true'
+```
+
+This needs a `docker-container` builder (`docker buildx create --use`): the default `docker` driver unpacks the image
+into Docker's image store, and BuildKit refuses `rewrite-timestamp` together with that. `bake.yml` uses a
+`docker-container` builder already.
+
 ## The variables CI sets
 
 The plan job works these out once per run and passes them to bake as environment variables. Use them in your own HCL
 too — `VERSION` is the usual one, for a version build arg.
 
-| Variable       | Local default | In CI                                                                                    |
-|----------------|---------------|------------------------------------------------------------------------------------------|
-| `VERSION`      | `dev`         | See below                                                                                |
-| `EVENT`        | *empty*       | The event name: `push`, `pull_request`, `schedule`, `workflow_dispatch`, …               |
-| `REF_TYPE`     | *empty*       | `tag` or `branch`                                                                        |
-| `REF_NAME`     | *empty*       | The tag or branch name                                                                   |
-| `PR_NUMBER`    | *empty*       | The pull request number                                                                  |
-| `DISPATCH_TAG` | `latest`      | The `dispatch-tag` input, lowercased                                                     |
-| `REVISION`     | *empty*       | The commit SHA                                                                           |
-| `SOURCE`       | *empty*       | The repository URL                                                                       |
-| `CREATED`      | *empty*       | One timestamp for the whole run, so every platform and every target carries the same one |
+| Variable       | Local default | In CI                                                                      |
+|----------------|---------------|----------------------------------------------------------------------------|
+| `VERSION`      | `dev`         | See below                                                                  |
+| `EVENT`        | *empty*       | The event name: `push`, `pull_request`, `schedule`, `workflow_dispatch`, … |
+| `REF_TYPE`     | *empty*       | `tag` or `branch`                                                          |
+| `REF_NAME`     | *empty*       | The tag or branch name                                                     |
+| `PR_NUMBER`    | *empty*       | The pull request number                                                    |
+| `DISPATCH_TAG` | `latest`      | The `dispatch-tag` input, lowercased                                       |
+| `REVISION`     | *empty*       | The commit SHA                                                             |
+| `SOURCE`       | *empty*       | The repository URL                                                         |
+| `CREATED`      | *empty*       | The commit time as RFC 3339, the same for every platform and every target  |
 
 A release is **stable** when it is a tag push whose version has no `-` in it. `specs.hcl` works that out from `EVENT`,
 `REF_TYPE` and `VERSION`; only a stable release moves `1.2`, `1` and `latest`.
+
+The plan job also sets `SOURCE_DATE_EPOCH`, the commit time as a Unix timestamp. That is not a `specs.hcl` variable:
+bake passes it to every target as the `SOURCE_DATE_EPOCH` build arg by itself, and BuildKit uses it for the image's
+timestamps.
 
 `VERSION` is, in this order:
 
