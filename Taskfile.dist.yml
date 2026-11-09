@@ -3,8 +3,10 @@ version: "3"
 silent: true
 
 vars:
+  # Keep these in step with lint.yml.
   ACTIONLINT_TAG_VERSION: "1.7.12"
   SHELLCHECK_TAG_VERSION: "v0.11.0"
+  ZIZMOR_VERSION: "1.32.0"
 
 tasks:
   lint:
@@ -19,6 +21,14 @@ tasks:
         --workdir /workdir
         koalaman/shellcheck:{{.SHELLCHECK_TAG_VERSION}}
         bake/lib.sh bake/*/*.sh bake/test/*.sh
+
+  zizmor:
+    desc: Audit the GitHub Actions workflows using zizmor (online audits need GH_TOKEN)
+    cmd: docker run --rm
+      --env GH_TOKEN
+      --volume "{{.ROOT_DIR}}:/workdir"
+      --workdir /workdir
+      ghcr.io/zizmorcore/zizmor:{{.ZIZMOR_VERSION}} --no-progress .
 
   test:
     desc: Run the bake/specs.hcl fixture tests and the tests of the bake actions' scripts
