@@ -51,8 +51,8 @@ With 4.0.0 the platforms and the image name move to `docker-bake.hcl`:
 target "default" {
   platforms   = ["linux/amd64", "linux/arm64"]
   tags        = specs_tags(["ghcr.io/specsnl/utils"], "")
-  labels      = specs_labels("utils", "")
-  annotations = specs_annotations("utils", "")
+  labels      = specs_labels("", "")
+  annotations = specs_annotations("", "")
 }
 ```
 
@@ -115,8 +115,11 @@ Check these against your last 3.x release before you merge the migration:
 - **A prerelease never moves `latest`**, for every image, not only Go CLIs.
 - **`org.opencontainers.image.version` is the version without the `v`**, on a plain image too, and it is the same in
   the config labels, the platform manifests, the index and its descriptors.
-- **No title or description unless you give one.** 3.x fell back to the repository name and description, and set
-  `licenses`; `specs_labels` sets only what it is given, plus `version`, `revision`, `source`, `url` and `created`.
+- **The same label keys, with the same value everywhere.** `specs_labels` sets the keys metadata-action did —
+  `title` and `description` (falling back to the repository's, as before), `licenses`, `version`, `revision`, `source`,
+  `url` and `created`. What changes is that the index, its descriptors, the platform manifests and the config labels
+  now agree: 3.x left `version` empty (or `latest`) on the platform images, and wrote a different `created` in each
+  place.
 - **Push follows the event**, not `github.actor`: pull requests from forks and dependabot pull requests that a person
   re-runs no longer try to push. See [when nothing is pushed](pipeline.md#when-nothing-is-pushed).
 - **The PHP builder's old names are yours to publish.** 3.x tagged `/builder_nodejs` and `/node` from `merge-php.yml`.
