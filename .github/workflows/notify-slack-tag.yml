@@ -1,73 +1,51 @@
-name: Notify Slack on Tag
+name: Notify Slack on tag
 
 on:
   workflow_call:
     inputs:
       runs-on:
-        description: Runner name i.e. default runner "ubuntu-24.04"
+        description: Runner name.
         type: string
-        required: true
-      channel:
-        description: Slack channel to notify i.e. "#releases"
-        type: string
-        default: "#releases"
+        default: ubuntu-24.04
     secrets:
       slack-webhook-url:
-        description: Slack Incoming Webhook URL
+        description: Slack incoming webhook URL. The webhook decides the channel.
         required: true
+
+permissions: {}
 
 jobs:
   notify:
-    name: Slack Notification
+    name: Slack notification
     runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 5
     steps:
 
+      - name: Build the payload
+        env:
+          TAG: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          jq -n --arg tag "$TAG" --arg repository "$REPOSITORY" --arg url "$REPOSITORY_URL" --arg actor "$ACTOR" '{
+            text: "Tag `\($tag)` created in \($repository)",
+            blocks: [
+              {type: "section", text: {type: "mrkdwn", text: "*New tag created*"}},
+              {type: "section", fields: [
+                {type: "mrkdwn", text: "*Tag:*\n`\($tag)`"},
+                {type: "mrkdwn", text: "*Repository:*\n<\($url)|\($repository)>"},
+                {type: "mrkdwn", text: "*Created by:*\n\($actor)"}
+              ]},
+              {type: "actions", elements: [
+                {type: "button", text: {type: "plain_text", text: "View Tag"}, url: "\($url)/releases/tag/\($tag | @uri)"}
+              ]}
+            ]
+          }' > "$RUNNER_TEMP/slack-payload.json"
+
       - name: Send Slack notification
-        uses: slackapi/slack-github-action@v4
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
         with:
           webhook: ${{ secrets.slack-webhook-url }}
           webhook-type: incoming-webhook
-          payload: |
-            {
-              "channel": "${{ inputs.channel }}",
-              "text": "Tag `${{ github.ref_name }}` created in ${{ github.repository }}",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*New tag created*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Tag:*\n`${{ github.ref_name }}`"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Repository:*\n<${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Created by:*\n${{ github.actor }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "View Tag"
-                      },
-                      "url": "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-                    }
-                  ]
-                }
-              ]
-            }
+          payload-file-path: ${{ runner.temp }}/slack-payload.json
