@@ -21,7 +21,7 @@ jobs:
 
   bake:
     name: Bake
-    uses: ./.github/workflows/bake.yml
+    uses: $/.github/workflows/bake.yml
     permissions:
       contents: read
       packages: write
@@ -34,7 +34,7 @@ jobs:
 
   load:
     name: Load
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       contents: read
