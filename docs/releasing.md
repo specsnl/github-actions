@@ -47,5 +47,10 @@ updates into one pull request. `lint.yml` and `test-bake.yml` run on it; `test-b
 The actionlint and zizmor versions are not updated by dependabot. Keep the ones in `lint.yml` in step with
 `ACTIONLINT_TAG_VERSION` and `ZIZMOR_VERSION` in `Taskfile.dist.yml`.
 
+`.github/actionlint.yaml` works around what actionlint 1.7.12 doesn't know yet: the `ubuntu-26.04` runner labels, and
+the `$/` self-repository syntax `test-bake.yml` uses to call `bake.yml`
+([rhysd/actionlint#711](https://github.com/rhysd/actionlint/issues/711)). Remove each part once an actionlint release
+supports it.
+
 To exercise the publish job as well, run `test-bake.yml` manually with `push` on. It publishes
 `ghcr.io/specsnl/github-actions/e2e` and `…/e2e-cli`.
