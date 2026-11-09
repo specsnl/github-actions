@@ -56,18 +56,21 @@ EVENT=push REF_TYPE=tag VERSION=1.2.3 IS_STABLE=true \
 The plan job works these out once per run and passes them to bake as environment variables. Use them in your own HCL
 too — `VERSION` is the usual one, for a version build arg.
 
-| Variable       | Local default | In CI                                                                                    |
-|----------------|---------------|------------------------------------------------------------------------------------------|
-| `VERSION`      | `dev`         | See below                                                                                |
-| `EVENT`        | *empty*       | The event name: `push`, `pull_request`, `schedule`, `workflow_dispatch`, …               |
-| `REF_TYPE`     | *empty*       | `tag` or `branch`                                                                        |
-| `REF_NAME`     | *empty*       | The tag or branch name                                                                   |
-| `PR_NUMBER`    | *empty*       | The pull request number                                                                  |
-| `DISPATCH_TAG` | `latest`      | The `dispatch-tag` input, lowercased                                                     |
-| `IS_STABLE`    | `false`       | `true` on a tag push whose version has no `-` in it                                      |
-| `REVISION`     | *empty*       | The commit SHA                                                                           |
-| `SOURCE`       | *empty*       | The repository URL                                                                       |
-| `CREATED`      | *empty*       | One timestamp for the whole run, so every platform and every target carries the same one |
+| Variable                 | Local default | In CI                                                                                    |
+|--------------------------|---------------|------------------------------------------------------------------------------------------|
+| `VERSION`                | `dev`         | See below                                                                                |
+| `EVENT`                  | *empty*       | The event name: `push`, `pull_request`, `schedule`, `workflow_dispatch`, …               |
+| `REF_TYPE`               | *empty*       | `tag` or `branch`                                                                        |
+| `REF_NAME`               | *empty*       | The tag or branch name                                                                   |
+| `PR_NUMBER`              | *empty*       | The pull request number                                                                  |
+| `DISPATCH_TAG`           | `latest`      | The `dispatch-tag` input, lowercased                                                     |
+| `IS_STABLE`              | `false`       | `true` on a tag push whose version has no `-` in it                                      |
+| `REVISION`               | *empty*       | The commit SHA                                                                           |
+| `SOURCE`                 | *empty*       | The repository URL                                                                       |
+| `CREATED`                | *empty*       | One timestamp for the whole run, so every platform and every target carries the same one |
+| `REPOSITORY_NAME`        | *empty*       | The repository's name, from the GitHub API                                               |
+| `REPOSITORY_DESCRIPTION` | *empty*       | The repository's description, from the GitHub API                                        |
+| `LICENSES`               | *empty*       | The repository's license as an SPDX identifier, i.e. `MIT`; empty when GitHub can't tell |
 
 `VERSION` is, in this order:
 
@@ -107,9 +110,12 @@ Characters a tag can't hold are replaced with `-`, so the branch `feature/foo` i
 
 ### `specs_labels(title, description)`
 
-The `org.opencontainers.image.*` labels: `version`, `revision`, `source`, `url`, `created`, and the given `title` and
-`description`. An empty value is left out rather than written as `""`. `source` is what links the package to its
-repository on GHCR.
+The `org.opencontainers.image.*` labels: `version`, `revision`, `source`, `url`, `created`, `licenses`, `title` and
+`description` — the same keys `docker/metadata-action` gave images built with 3.x and earlier.
+
+Pass `""` as the title or description to fall back to the repository's name or description, as 3.x did; pass a value
+to override it. `licenses` is the repository's license. An empty value is left out rather than written as `""`.
+`source` is what links the package to its repository on GHCR.
 
 ### `specs_annotations(title, description)`
 
@@ -141,12 +147,12 @@ One Dockerfile, one stage, one image — `specsnl/utils`:
 target "default" {
   platforms   = ["linux/amd64", "linux/arm64"]
   tags        = specs_tags(["ghcr.io/specsnl/utils"], "")
-  labels      = specs_labels("utils", "")
-  annotations = specs_annotations("utils", "")
+  labels      = specs_labels("", "")
+  annotations = specs_annotations("", "")
 }
 ```
 
-A tag push of `v1.19.0` publishes `utils:1.19.0`, `utils:1.19`, `utils:1` and `utils:latest`.
+The title and description are the repository's. A tag push of `v1.19.0` publishes `utils:1.19.0`, `utils:1.19`, `utils:1` and `utils:latest`.
 
 ### A PHP image
 

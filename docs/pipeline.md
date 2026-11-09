@@ -11,8 +11,8 @@ plan ──► build linux/amd64 ──┐
 
 The plan job works out everything that depends on the run, once:
 
-- the bake variables — `VERSION`, the event, the ref, `IS_STABLE`, the revision, and one `CREATED` timestamp (see
-  [the variables CI sets](bake.md#the-variables-ci-sets));
+- the bake variables — `VERSION`, the event, the ref, `IS_STABLE`, the revision, one `CREATED` timestamp, and the
+  repository's name, description and license (see [the variables CI sets](bake.md#the-variables-ci-sets));
 - whether to push (see [below](#when-nothing-is-pushed)).
 
 It then runs `docker buildx bake --print` on the consumer's bake files with those variables set, and **freezes** the
