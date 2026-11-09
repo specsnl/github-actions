@@ -37,7 +37,7 @@ on:
       runners:
         description: >-
           JSON object mapping a platform to its runner, merged over the default
-          {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}.
+          {"linux/amd64": "ubuntu-26.04", "linux/arm64": "ubuntu-26.04-arm"}.
         type: string
         required: false
       disable-apparmor:
@@ -68,7 +68,7 @@ jobs:
 
   plan:
     name: Plan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -232,7 +232,7 @@ jobs:
           ' "$dir/print.json" > "$dir/publish.json"
 
           jq --argjson override "${RUNNERS:-"{}"}" '
-            ({"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"} + $override) as $runners
+            ({"linux/amd64": "ubuntu-26.04", "linux/arm64": "ubuntu-26.04-arm"} + $override) as $runners
             | [.target[].platforms[]] | unique
             | map({
                 platform: .,
@@ -383,7 +383,7 @@ jobs:
     name: Publish
     needs: [plan, build]
     if: ${{ needs.plan.outputs.push == 'true' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       packages: write
@@ -442,7 +442,7 @@ jobs:
     name: Image
     needs: [plan, build, publish]
     if: ${{ always() }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - name: Check the results
