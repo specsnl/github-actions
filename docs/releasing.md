@@ -1,44 +1,51 @@
 # Releasing this repository
 
-Consumers pin by tag — `…/build.yml@2.2.0`, never `@main` — so nothing here reaches anyone until a tag exists.
+Consumers pin by tag — `…/bake.yml@4.0.0`, never `@main` — so nothing here reaches anyone until a tag exists.
 
-Tags are plain semver with no `v` prefix: `2.2.0`, `2.1.0`, `2.0.0-rc.1`.
+Tags are plain semver with no `v` prefix: `4.0.0`, `3.0.2`, `2.0.0-rc.1`.
 
 ## Cutting a release
 
 1. Merge the pull request. This repository merges with merge commits, so every commit on the branch lands in `main`.
 2. Tag the merge commit on `main` with the new version and push the tag.
 
-Bumping the internal references is part of the change, not of the tagging: the reusable workflows call the composite
-actions by tag too, so a pull request that changes an action **must** end with a commit moving
-`.github/workflows/build.yml` and `merge.yml` to the version about to be cut. See commit `3765927` for the shape.
+There is nothing to bump before tagging. `bake.yml` references no other file of this repository by tag — `specs.hcl`
+is vendored by the consumers — so a tag can't ship with references to an older one, which is how `3.0.1` shipped
+without its fix. `lint.yml` fails when a workflow starts referencing this repository by tag again.
 
-That ordering means the reference is briefly ahead of reality — `build.yml` on `main` points at a tag that does not
-exist yet. Cutting the tag immediately after merging closes that window. Until then, `main` is not usable, which is
-another reason consumers pin.
+## `specs.hcl` and its hash
+
+The plan job warns when a consumer's copy of `specs.hcl` differs from the one it was released with. It knows that one
+by its SHA-256, `SPECS_HCL_SHA256` in `bake.yml`. A change to `bake/specs.hcl` has to update that hash in the same pull
+request; `lint.yml` fails until it does. `task test:update` rewrites it, together with the expected output of the
+fixture tests.
+
+A change to `specs.hcl` changes what consumers publish, so check the fixture test diff as carefully as the change
+itself.
 
 ## Versioning
 
-| Bump  | When                                                                                   |
-|-------|----------------------------------------------------------------------------------------|
-| Major | An input is removed or renamed, or a default changes what an existing caller publishes |
-| Minor | A new input, workflow or action; new behaviour behind an opt-in                        |
-| Patch | A fix that leaves every caller's published output the same                             |
+| Bump  | When                                                                                                                                |
+|-------|-------------------------------------------------------------------------------------------------------------------------------------|
+| Major | An input is removed or renamed, a job or check is renamed, or a tag rule in `specs.hcl` changes what an existing consumer publishes |
+| Minor | A new input, workflow or `specs.hcl` function; new behaviour behind an opt-in                                                       |
+| Patch | A fix that leaves every consumer's published output the same                                                                        |
 
-Adding an input with a default that preserves current behaviour is a minor bump — `build-image`'s `load` and `push`
-are the example. Changing which tags an existing caller gets is not.
+Changing which tags or labels an existing consumer gets is a major bump, even when it is a fix.
 
 ## Announcing
 
-`notify-slack-tag.yml` posts the tag to `#releases`. A consuming repository calls it on `push: tags`; see the
-[workflow reference](workflows.md#notify-slack-tagyml).
+`notify-slack-tag.yml` posts the tag to the channel of the webhook. A consuming repository calls it on `push: tags`;
+see the [workflow reference](workflows.md#notify-slack-tagyml).
 
 ## Keeping actions up to date
 
-Dependabot runs daily against `github-actions` here and opens pull requests for the third-party actions used inside
-the workflows and composite actions. `actionlint` is the only check that runs on them; nothing in this repository
-builds an image, so a bump is only exercised for real once a consumer runs it.
+Every action is pinned by commit SHA, with its version in a comment. Dependabot checks them weekly and groups the
+updates into one pull request. `lint.yml` and `test-bake.yml` run on it; `test-bake.yml` builds a test image through
+`bake.yml`, so a bump is exercised before it is released.
 
-Such a bump still needs a release before it reaches anyone, and it is a normal change: it needs the internal reference
-commit and a tag like any other. In the consuming repositories the same dependabot updates the pin on these workflows,
-and those pull requests build without publishing — see [what dependabot gets](pipeline.md#what-dependabot-gets).
+The actionlint and zizmor versions are not updated by dependabot. Keep the ones in `lint.yml` in step with
+`ACTIONLINT_TAG_VERSION` and `ZIZMOR_VERSION` in `Taskfile.dist.yml`.
+
+To exercise the publish job as well, run `test-bake.yml` manually with `push` on. It publishes
+`ghcr.io/specsnl/github-actions/e2e` and `…/e2e-cli`.
