@@ -1,16 +1,19 @@
 # Testing an image in a pull request
 
-`build.yml` pushes by digest, which is right for a release but not for a pull-request guard. The point of checking a
-CLI image is *running* the binary: asserting `--version`, that the entrypoint works, that the non-root user can write
-into a bind mount. An image that is only compiled and never executed misses most of what can break.
+`bake.yml` pushes by digest, which is right for a release but not for a pull request test. The point of testing an
+image is *running* it: asserting `--version`, that the entrypoint works, that the non-root user can write into a bind
+mount. An image that is only built and never run misses most of what can break.
 
-Use the `build-image` action directly for that. The image has to be built and run in the same job, so a reusable
-workflow is the wrong level — it would load the image into a daemon the caller cannot reach.
+The image has to be built and run in the same job, so a reusable workflow is the wrong level. Run
+`docker/bake-action` yourself, with `load: true`, on the same bake files:
 
 ```yaml
 name: CI
 
 on: pull_request
+
+permissions:
+  contents: read
 
 jobs:
 
@@ -18,43 +21,51 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
       - uses: docker/setup-buildx-action@v4
 
-      - id: build
-        uses: specsnl/github-actions/build-image@3.0.2
+      - uses: docker/bake-action@v7
+        env:
+          VERSION: ci
         with:
-          platform: linux/amd64
-          image-name: ghcr.io/specsnl/specs-cli
-          dockerfile: Dockerfile
-          target: debian
+          source: .
+          files: |
+            specs.hcl
+            docker-bake.hcl
+          targets: cli-debian
           load: true
-          build-args: SPECS_VERSION=ci
+          set: '*.platform=linux/amd64'
 
       # Proves the ldflag landed: a wrong build arg name would leave this at "dev".
       - name: Smoke test
-        env:
-          IMAGE: ${{ steps.build.outputs.image }}
-        run: test "$(docker run --rm "$IMAGE" --version)" = "ci"
+        run: test "$(docker run --rm ghcr.io/specsnl/specs-cli:local --version)" = "ci"
 ```
 
-## What `load` does
+## What this does
 
-- Builds a **single** platform and loads the result into the runner's Docker daemon, rather than pushing it.
-- Tags it `<image-name>:<raw-tag>` — `raw-tag` defaults to `latest` — and reports that reference as the `image`
-  output, which is what the step above runs.
-- Skips the digest export and artifact upload, since there is no merge phase to feed.
+- `source: .` builds from the checked-out files, the same ones CI and a local build read, instead of bake-action's
+  default Git context.
+- `load: true` loads the result into the runner's Docker daemon instead of pushing it. That works for one platform at
+  a time, hence `*.platform=linux/amd64`.
+- None of the CI variables are set, so `specs_tags` gives the local tag: `<image>:local`. That is the reference to
+  run.
+- `VERSION` is a bake variable, read from the environment. `ci` above is deliberate: a literal the test can compare
+  against exactly, which fails if the build arg name is wrong and the Dockerfile falls back to `dev`. `${{ github.sha }}`
+  works just as well.
 
-## `load` and `push` are mutually exclusive
+## A dedicated test target
 
-`load: true` implies `push: false`. Setting both fails the build with a clear error, because a single build cannot
-write to the registry and to the local daemon at once.
+When the test needs something the published image doesn't — test tools, a different entrypoint — give it a target of
+its own, outside the `default` group so CI never publishes it:
 
-`push: false` on its own is a different thing: it builds without writing to the registry, but nothing is loaded either,
-so there is no image to run. That is what dependabot already gets by default. A guard that wants to execute the binary
-wants `load`.
+```hcl
+target "test" {
+  inherits = ["cli-debian"]
+  target   = "test"
+  tags     = ["specs-cli:test"]
+}
+```
 
-## Pinning the version under test
-
-Pass whatever version the guard should assert through `build-args`. `SPECS_VERSION=ci` above is deliberate: a literal
-the test can compare against exactly, which fails if the build arg name is wrong and the Dockerfile falls back to
-`dev`. `${{ github.sha }}` works just as well.
+and build that with `targets: test`.
