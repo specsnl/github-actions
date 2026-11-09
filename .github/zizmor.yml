@@ -1,4 +1,0 @@
-rules:
-  # The "$/..." syntax this asks for isn't accepted by actionlint yet.
-  self-repository:
-    disable: true
