@@ -1,0 +1,65 @@
+{
+  "builder": {
+    "annotations": [
+      "manifest:org.opencontainers.image.title=PHP 8.4 builder",
+      "manifest:org.opencontainers.image.version=dev"
+    ],
+    "labels": {
+      "org.opencontainers.image.title": "PHP 8.4 builder",
+      "org.opencontainers.image.version": "dev"
+    },
+    "tags": [
+      "ghcr.io/specsnl/php84/builder:local"
+    ]
+  },
+  "cli-alpine": {
+    "args": {
+      "SPECS_VERSION": "dev"
+    },
+    "labels": {
+      "org.opencontainers.image.title": "specs-cli",
+      "org.opencontainers.image.version": "dev"
+    },
+    "tags": [
+      "ghcr.io/specsnl/specs-cli:local-alpine"
+    ]
+  },
+  "cli-debian": {
+    "args": {
+      "SPECS_VERSION": "dev"
+    },
+    "labels": {
+      "org.opencontainers.image.title": "specs-cli",
+      "org.opencontainers.image.version": "dev"
+    },
+    "tags": [
+      "ghcr.io/specsnl/specs-cli:local"
+    ]
+  },
+  "runtime": {
+    "annotations": [
+      "manifest:org.opencontainers.image.description=PHP 8.4 runtime",
+      "manifest:org.opencontainers.image.title=PHP 8.4",
+      "manifest:org.opencontainers.image.version=dev"
+    ],
+    "labels": {
+      "org.opencontainers.image.description": "PHP 8.4 runtime",
+      "org.opencontainers.image.title": "PHP 8.4",
+      "org.opencontainers.image.version": "dev"
+    },
+    "tags": [
+      "ghcr.io/specsnl/php84:local"
+    ]
+  },
+  "utils": {
+    "annotations": [
+      "manifest:org.opencontainers.image.version=dev"
+    ],
+    "labels": {
+      "org.opencontainers.image.version": "dev"
+    },
+    "tags": [
+      "ghcr.io/specsnl/utils:local"
+    ]
+  }
+}

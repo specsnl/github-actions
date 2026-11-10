@@ -1,0 +1,113 @@
+{
+  "builder": {
+    "annotations": [
+      "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+      "manifest:org.opencontainers.image.description=An example repository",
+      "manifest:org.opencontainers.image.licenses=MIT",
+      "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+      "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.title=PHP 8.4 builder",
+      "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.version=version-2"
+    ],
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "PHP 8.4 builder",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "version-2"
+    },
+    "tags": [
+      "ghcr.io/specsnl/php84/builder:version-2"
+    ]
+  },
+  "cli-alpine": {
+    "args": {
+      "SPECS_VERSION": "version-2"
+    },
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "specs-cli",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "version-2"
+    },
+    "tags": [
+      "ghcr.io/specsnl/specs-cli:version-2-alpine"
+    ]
+  },
+  "cli-debian": {
+    "args": {
+      "SPECS_VERSION": "version-2"
+    },
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "specs-cli",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "version-2"
+    },
+    "tags": [
+      "ghcr.io/specsnl/specs-cli:version-2"
+    ]
+  },
+  "runtime": {
+    "annotations": [
+      "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+      "manifest:org.opencontainers.image.description=PHP 8.4 runtime",
+      "manifest:org.opencontainers.image.licenses=MIT",
+      "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+      "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.title=PHP 8.4",
+      "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.version=version-2"
+    ],
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "PHP 8.4 runtime",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "PHP 8.4",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "version-2"
+    },
+    "tags": [
+      "ghcr.io/specsnl/php84:version-2"
+    ]
+  },
+  "utils": {
+    "annotations": [
+      "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+      "manifest:org.opencontainers.image.description=An example repository",
+      "manifest:org.opencontainers.image.licenses=MIT",
+      "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+      "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.title=example",
+      "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.version=version-2"
+    ],
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "example",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "version-2"
+    },
+    "tags": [
+      "ghcr.io/specsnl/utils:version-2"
+    ]
+  }
+}

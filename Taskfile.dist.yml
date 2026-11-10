@@ -12,3 +12,11 @@ tasks:
       --volume "{{.ROOT_DIR}}:/workdir"
       --workdir /workdir
       rhysd/actionlint:{{.ACTIONLINT_TAG_VERSION}}
+
+  test:
+    desc: Run the bake/specs.hcl fixture tests
+    cmd: bake/test/run.sh
+
+  test:update:
+    desc: Rewrite the expected output of the bake/specs.hcl fixture tests
+    cmd: bake/test/run.sh --update

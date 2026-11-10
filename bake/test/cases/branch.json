@@ -1,0 +1,113 @@
+{
+  "builder": {
+    "annotations": [
+      "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+      "manifest:org.opencontainers.image.description=An example repository",
+      "manifest:org.opencontainers.image.licenses=MIT",
+      "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+      "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.title=PHP 8.4 builder",
+      "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.version=Feature/Some_thing"
+    ],
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "PHP 8.4 builder",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "Feature/Some_thing"
+    },
+    "tags": [
+      "ghcr.io/specsnl/php84/builder:Feature-Some_thing"
+    ]
+  },
+  "cli-alpine": {
+    "args": {
+      "SPECS_VERSION": "Feature/Some_thing"
+    },
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "specs-cli",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "Feature/Some_thing"
+    },
+    "tags": [
+      "ghcr.io/specsnl/specs-cli:Feature-Some_thing-alpine"
+    ]
+  },
+  "cli-debian": {
+    "args": {
+      "SPECS_VERSION": "Feature/Some_thing"
+    },
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "specs-cli",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "Feature/Some_thing"
+    },
+    "tags": [
+      "ghcr.io/specsnl/specs-cli:Feature-Some_thing"
+    ]
+  },
+  "runtime": {
+    "annotations": [
+      "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+      "manifest:org.opencontainers.image.description=PHP 8.4 runtime",
+      "manifest:org.opencontainers.image.licenses=MIT",
+      "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+      "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.title=PHP 8.4",
+      "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.version=Feature/Some_thing"
+    ],
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "PHP 8.4 runtime",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "PHP 8.4",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "Feature/Some_thing"
+    },
+    "tags": [
+      "ghcr.io/specsnl/php84:Feature-Some_thing"
+    ]
+  },
+  "utils": {
+    "annotations": [
+      "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+      "manifest:org.opencontainers.image.description=An example repository",
+      "manifest:org.opencontainers.image.licenses=MIT",
+      "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+      "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.title=example",
+      "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+      "manifest:org.opencontainers.image.version=Feature/Some_thing"
+    ],
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "example",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "Feature/Some_thing"
+    },
+    "tags": [
+      "ghcr.io/specsnl/utils:Feature-Some_thing"
+    ]
+  }
+}
