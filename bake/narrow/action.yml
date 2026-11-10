@@ -1,0 +1,27 @@
+name: Bake narrow
+description: >-
+  Internal to .github/workflows/bake.yml. Narrows the bake definition in $RUNNER_TEMP/bake to one platform.
+
+inputs:
+  platform:
+    description: The platform to build, i.e. "linux/amd64".
+    required: true
+  slug:
+    description: The platform as a name, i.e. "linux-amd64".
+    required: true
+
+outputs:
+  file:
+    description: The narrowed bake definition.
+    value: ${{ steps.narrow.outputs.file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Narrow the definition
+      id: narrow
+      shell: bash
+      env:
+        PLATFORM: ${{ inputs.platform }}
+        SLUG: ${{ inputs.slug }}
+      run: bash "$GITHUB_ACTION_PATH/narrow.sh"

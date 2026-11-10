@@ -4,15 +4,11 @@ on:
   workflow_call:
     inputs:
       files:
-        description: The consumer's bake files (multiline), read after specs-file.
+        description: >-
+          The consumer's bake files (multiline). The workflow reads its own bake/specs.hcl first, at the version of
+          this workflow, so the bake files can use its functions without a copy of it.
         type: string
         default: docker-bake.hcl
-      specs-file:
-        description: >-
-          Path of the vendored copy of bake/specs.hcl. Read first, and compared with the copy this version of the
-          workflow expects. Set to an empty string if the bake files don't use it.
-        type: string
-        default: specs.hcl
       targets:
         description: Bake targets or groups to build (multiline). Defaults to the "default" group.
         type: string
@@ -73,10 +69,10 @@ jobs:
     permissions:
       contents: read
     outputs:
-      version: ${{ steps.vars.outputs.version }}
-      push: ${{ steps.vars.outputs.push }}
-      matrix: ${{ steps.freeze.outputs.matrix }}
-      artifact: ${{ steps.freeze.outputs.artifact }}
+      version: ${{ steps.plan.outputs.version }}
+      push: ${{ steps.plan.outputs.push }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      artifact: ${{ steps.plan.outputs.artifact }}
     steps:
 
       - name: Checkout
@@ -84,201 +80,21 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Work out the run's variables
-        id: vars
-        env:
-          INPUT_VERSION: ${{ inputs.version }}
-          INPUT_DISPATCH_TAG: ${{ inputs.dispatch-tag }}
-          INPUT_PUSH: ${{ inputs.push }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
-        run: |
-          dispatch_tag="${INPUT_DISPATCH_TAG,,}"
-          dispatch_tag="${dispatch_tag:-latest}"
-
-          version="$INPUT_VERSION"
-          if [ -z "$version" ]; then
-            case "$GITHUB_EVENT_NAME" in
-              push)
-                version="$GITHUB_REF_NAME"
-                if [ "$GITHUB_REF_TYPE" = tag ] && [[ $version =~ ^v[0-9] ]]; then
-                  version="${version#v}"
-                fi
-                ;;
-              pull_request | pull_request_target) version="pr-$PR_NUMBER" ;;
-              schedule) version=nightly ;;
-              workflow_dispatch) version="$dispatch_tag" ;;
-            esac
-          fi
-
-          is_stable=false
-          if [ "$GITHUB_EVENT_NAME" = push ] && [ "$GITHUB_REF_TYPE" = tag ] && [[ $version != *-* ]]; then
-            is_stable=true
-          fi
-
-          push="$INPUT_PUSH"
-          if [ -z "$push" ]; then
-            push=true
-            case "$GITHUB_EVENT_NAME" in
-              pull_request | pull_request_target)
-                if [ "$PR_AUTHOR" = 'dependabot[bot]' ] || [ "$PR_HEAD_REPOSITORY" != "$GITHUB_REPOSITORY" ]; then
-                  push=false
-                fi
-                ;;
-              push)
-                if [ "$GITHUB_REF_TYPE" = branch ] && [[ $GITHUB_REF_NAME == dependabot/* ]]; then
-                  push=false
-                fi
-                ;;
-              schedule | workflow_dispatch) ;;
-              *) push=false ;;
-            esac
-          fi
-          if [ "$push" != true ] && [ "$push" != false ]; then
-            echo "::error::push must be \"true\" or \"false\", got \"$push\"."
-            exit 1
-          fi
-
-          delimiter="EOF_$(openssl rand -hex 16)"
-          {
-            echo "version<<$delimiter"
-            echo "$version"
-            echo "$delimiter"
-            echo "dispatch-tag<<$delimiter"
-            echo "$dispatch_tag"
-            echo "$delimiter"
-            echo "is-stable=$is_stable"
-            echo "push=$push"
-            echo "created=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Compare specs.hcl
-        if: ${{ inputs.specs-file != '' }}
-        env:
-          SPECS_FILE: ${{ inputs.specs-file }}
-          SPECS_HCL_SHA256: 614358730448525dc70538f509930a0e0c85b21f0d6d8f04016ac1089797d4c8
-        run: |
-          if [ ! -f "$SPECS_FILE" ]; then
-            echo "::error::$SPECS_FILE not found. Copy bake/specs.hcl from specsnl/github-actions at the version of bake.yml you use, or set specs-file to an empty string."
-            exit 1
-          fi
-          actual=$(sha256sum "$SPECS_FILE" | cut -d' ' -f1)
-          if [ "$actual" != "$SPECS_HCL_SHA256" ]; then
-            echo "::warning file=$SPECS_FILE::$SPECS_FILE differs from bake/specs.hcl at the version of bake.yml you use. Copy that file over it."
-          fi
-
-      - name: Read the repository
-        id: repository
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api "repos/$GITHUB_REPOSITORY" > "$RUNNER_TEMP/repository.json"
-          delimiter="EOF_$(openssl rand -hex 16)"
-          {
-            echo "name<<$delimiter"
-            jq -r '.name' "$RUNNER_TEMP/repository.json"
-            echo "$delimiter"
-            echo "description<<$delimiter"
-            jq -r '.description // ""' "$RUNNER_TEMP/repository.json"
-            echo "$delimiter"
-            echo "license=$(jq -r '.license.spdx_id // "" | select(. != "NOASSERTION")' "$RUNNER_TEMP/repository.json")"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Freeze the bake definition
-        id: freeze
-        env:
-          FILES: ${{ inputs.files }}
-          SPECS_FILE: ${{ inputs.specs-file }}
-          TARGETS: ${{ inputs.targets }}
-          RUNNERS: ${{ inputs.runners }}
-          PUSH: ${{ steps.vars.outputs.push }}
-          VERSION: ${{ steps.vars.outputs.version }}
-          DISPATCH_TAG: ${{ steps.vars.outputs.dispatch-tag }}
-          IS_STABLE: ${{ steps.vars.outputs.is-stable }}
-          CREATED: ${{ steps.vars.outputs.created }}
-          EVENT: ${{ github.event_name }}
-          REF_TYPE: ${{ github.ref_type }}
-          REF_NAME: ${{ github.ref_name }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          REVISION: ${{ github.sha }}
-          SOURCE: ${{ github.server_url }}/${{ github.repository }}
-          REPOSITORY_NAME: ${{ steps.repository.outputs.name }}
-          REPOSITORY_DESCRIPTION: ${{ steps.repository.outputs.description }}
-          LICENSES: ${{ steps.repository.outputs.license }}
-        run: |
-          trim() { sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d'; }
-
-          files=()
-          while IFS= read -r file; do files+=(-f "$file"); done < <(printf '%s\n%s\n' "$SPECS_FILE" "$FILES" | trim)
-          mapfile -t targets < <(printf '%s\n' "$TARGETS" | trim)
-
-          dir="$RUNNER_TEMP/bake"
-          mkdir -p "$dir"
-          docker buildx bake --progress=quiet "${files[@]}" --print "${targets[@]}" > "$dir/print.json"
-          if jq -e '(.target // {}) == {}' "$dir/print.json" > /dev/null; then
-            echo "::error::The bake files define no targets to build."
-            exit 1
-          fi
-
-          jq --arg push "$PUSH" '
-            def image: .tags[0] | sub(":[^:/]*$"; "");
-            .target |= with_entries(
-              if (.value.platforms // []) == [] then
-                error("target \(.key) has no platforms; set platforms in the bake file")
-              elif $push == "true" and (.value.tags // []) == [] then
-                error("target \(.key) has no tags for this event, so there is nothing to push")
-              else . end
-            )
-            | .target |= map_values(
-                (if $push == "true" then
-                  "type=image,name=\(image),push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
-                else
-                  "type=cacheonly"
-                end) as $output
-                | del(.tags, .output, .["cache-from"], .["cache-to"], .load, .push)
-                | .output = [$output]
-              )
-            | .group = {default: {targets: (.target | keys)}}
-          ' "$dir/print.json" > "$dir/definition.json"
-
-          jq '
-            .target | map_values({
-              image: (.tags[0] // "" | sub(":[^:/]*$"; "")),
-              tags: (.tags // []),
-              labels: (.labels // {}),
-              platforms
-            })
-          ' "$dir/print.json" > "$dir/publish.json"
-
-          jq --argjson override "${RUNNERS:-"{}"}" '
-            ({"linux/amd64": "ubuntu-26.04", "linux/arm64": "ubuntu-26.04-arm"} + $override) as $runners
-            | [.target[].platforms[]] | unique
-            | map({
-                platform: .,
-                slug: gsub("[^A-Za-z0-9]+"; "-"),
-                runner: ($runners[.] // error("no runner for platform \(.); add it to the runners input"))
-              })
-          ' "$dir/print.json" > "$dir/matrix.json"
-
-          echo "matrix=$(jq -c . "$dir/matrix.json")" >> "$GITHUB_OUTPUT"
-          # Unique per call, so a caller can use this workflow more than once in a run.
-          echo "artifact=bake-$(printf '%s\n' "$SPECS_FILE" "$FILES" "$TARGETS" | sha256sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
-
-          {
-            echo '### Bake definition'
-            echo
-            echo "Version \`$VERSION\`, push \`$PUSH\`."
-            echo
-            echo '| Target | Platforms | Tags |'
-            echo '|--------|-----------|------|'
-            jq -r 'to_entries[] | "| `\(.key)` | \(.value.platforms | join(", ")) | \(.value.tags | map("`\(.)`") | join("<br>")) |"' "$dir/publish.json"
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Plan
+        id: plan
+        uses: $/bake/plan
+        with:
+          files: ${{ inputs.files }}
+          targets: ${{ inputs.targets }}
+          version: ${{ inputs.version }}
+          dispatch-tag: ${{ inputs.dispatch-tag }}
+          push: ${{ inputs.push }}
+          runners: ${{ inputs.runners }}
 
       - name: Upload the bake definition
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ steps.freeze.outputs.artifact }}-definition
+          name: ${{ steps.plan.outputs.artifact }}-definition
           path: |
             ${{ runner.temp }}/bake/definition.json
             ${{ runner.temp }}/bake/publish.json
@@ -312,45 +128,15 @@ jobs:
 
       - name: Narrow the definition to ${{ matrix.platform }}
         id: definition
-        env:
-          PLATFORM: ${{ matrix.platform }}
-          SLUG: ${{ matrix.slug }}
-        run: |
-          dir="$RUNNER_TEMP/bake"
-          jq --arg platform "$PLATFORM" --arg slug "$SLUG" --slurpfile publish "$dir/publish.json" '
-            .target |= with_entries(
-              select(.value.platforms | index($platform))
-              | ("\($publish[0][.key].image | gsub("[^A-Za-z0-9]+"; "-"))-\(.key)-\($slug)") as $scope
-              | .value.platforms = [$platform]
-              | .value["cache-from"] = ["type=gha,scope=\($scope)"]
-              | .value["cache-to"] = ["type=gha,mode=max,scope=\($scope)"]
-            )
-            | .group = {default: {targets: (.target | keys)}}
-          ' "$dir/definition.json" > "$dir/definition-$SLUG.json"
-          echo "file=$dir/definition-$SLUG.json" >> "$GITHUB_OUTPUT"
+        uses: $/bake/narrow
+        with:
+          platform: ${{ matrix.platform }}
+          slug: ${{ matrix.slug }}
 
       - name: Export the build secrets
-        env:
-          BUILD_SECRETS: ${{ secrets.build-secrets }}
-        run: |
-          while IFS= read -r line || [ -n "$line" ]; do
-            [ -z "${line//[[:space:]]/}" ] && continue
-            name="${line%%=*}"
-            value="${line#*=}"
-            if [ "$name" = "$line" ] || [[ ! $name =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-              echo "::error::Every line of build-secrets must be NAME=value, with a NAME of letters, digits and underscores."
-              exit 1
-            fi
-            case "$name" in
-              GITHUB_* | RUNNER_* | ACTIONS_* | BUILDX_* | DOCKER_* | PATH | HOME | BASH_ENV | ENV | NODE_OPTIONS | LD_*)
-                echo "::error::build-secrets may not set $name."
-                exit 1
-                ;;
-            esac
-            [ -n "$value" ] && echo "::add-mask::$value"
-            delimiter="EOF_$(openssl rand -hex 16)"
-            printf '%s<<%s\n%s\n%s\n' "$name" "$delimiter" "$value" "$delimiter" >> "$GITHUB_ENV"
-          done <<< "$BUILD_SECRETS"
+        uses: $/bake/secrets
+        with:
+          secrets: ${{ secrets.build-secrets }}
 
       - name: Log in to the Container registry
         if: ${{ needs.plan.outputs.push == 'true' }}
@@ -378,17 +164,10 @@ jobs:
 
       - name: Export the digests
         if: ${{ needs.plan.outputs.push == 'true' }}
-        env:
-          METADATA: ${{ steps.bake.outputs.metadata }}
-          SLUG: ${{ matrix.slug }}
-        run: |
-          dir="$RUNNER_TEMP/digests"
-          mkdir -p "$dir"
-          jq '
-            with_entries(select(.value | type == "object"))
-            | map_values(.["containerimage.digest"] // error("no digest in the build metadata"))
-          ' <<< "$METADATA" > "$dir/digests-$SLUG.json"
-          cat "$dir/digests-$SLUG.json"
+        uses: $/bake/digests
+        with:
+          metadata: ${{ steps.bake.outputs.metadata }}
+          slug: ${{ matrix.slug }}
 
       - name: Upload the digests
         if: ${{ needs.plan.outputs.push == 'true' }}
@@ -430,33 +209,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create the manifests
-        run: |
-          publish="$RUNNER_TEMP/bake/publish.json"
-          digests=$(jq -s 'map(to_entries) | add | group_by(.key) | map({key: .[0].key, value: map(.value)}) | from_entries' "$RUNNER_TEMP"/digests/digests-*.json)
-
-          for target in $(jq -r 'keys[]' "$publish"); do
-            image=$(jq -r --arg t "$target" '.[$t].image' "$publish")
-            mapfile -t tags < <(jq -r --arg t "$target" '.[$t].tags[]' "$publish")
-            mapfile -t annotations < <(jq -r --arg t "$target" '
-              .[$t].labels | to_entries[] | "index:\(.key)=\(.value)", "manifest-descriptor:\(.key)=\(.value)"
-            ' "$publish")
-            mapfile -t sources < <(jq -r --arg t "$target" --arg image "$image" '(.[$t] // [])[] | "\($image)@\(.)"' <<< "$digests")
-
-            expected=$(jq -r --arg t "$target" '.[$t].platforms | length' "$publish")
-            if [ "${#sources[@]}" -ne "$expected" ]; then
-              echo "::error::$target has ${#sources[@]} digests for $expected platforms."
-              exit 1
-            fi
-
-            args=()
-            for tag in "${tags[@]}"; do args+=(--tag "$tag"); done
-            for annotation in "${annotations[@]}"; do args+=(--annotation "$annotation"); done
-
-            echo "::group::$target"
-            docker buildx imagetools create "${args[@]}" "${sources[@]}"
-            docker buildx imagetools inspect "${tags[0]}"
-            echo "::endgroup::"
-          done
+        uses: $/bake/publish
 
   status:
     name: Image
