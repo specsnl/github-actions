@@ -24,3 +24,14 @@ jobs:
         uses: docker://rhysd/actionlint:latest
         with:
           args: -color
+
+  bake-tests:
+    name: Bake tests
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Run the specs.hcl fixture tests
+        run: bake/test/run.sh
