@@ -5,7 +5,7 @@ repository itself, in two bake files:
 
 | File              | Owner                    | Contents                                                     |
 |-------------------|--------------------------|--------------------------------------------------------------|
-| `specs.hcl`       | This repository          | The tag, label and annotation rules, copied in unchanged     |
+| `specs.hcl`       | This repository          | The tag, label and annotation rules, supplied by `bake.yml`  |
 | `docker-bake.hcl` | The consuming repository | The targets: Dockerfile, stage, platforms, args, image names |
 
 Read the [bake documentation](https://docs.docker.com/build/bake/) for the HCL syntax: variables, functions,
@@ -13,34 +13,28 @@ Read the [bake documentation](https://docs.docker.com/build/bake/) for the HCL s
 
 ## Getting `specs.hcl`
 
-Copy `bake/specs.hcl` from this repository, at the tag you pin `bake.yml` at, to `specs.hcl` in the root of the
-consuming repository:
+In CI you don't: `bake.yml` reads `bake/specs.hcl` from this repository, at the version of `bake.yml` you call, before
+your own bake files. The consuming repository doesn't keep a copy, and moving `bake.yml` to a new tag moves the rules
+with it.
 
-```bash
-curl -fsSLo specs.hcl https://raw.githubusercontent.com/specsnl/github-actions/4.0.0/bake/specs.hcl
-```
-
-Don't edit the copy. The plan job compares it with the one its own version expects and warns in the run summary when
-they differ, so update it whenever you move `bake.yml` to a new tag. Put it somewhere else by setting the
-`specs-file` input.
-
-A Taskfile task keeps both in one place:
+For a local build, fetch it at that same version to `.specs.hcl` and keep it out of git. A Taskfile task reads the
+version from the `uses:` line of your workflow, so the tag stays pinned in one place:
 
 ```yaml
-vars:
-  SPECS_ACTIONS_VERSION: "4.0.0"
-
 tasks:
   specs-hcl:
-    desc: Update specs.hcl to the version of bake.yml in use
-    cmd: curl -fsSLo specs.hcl https://raw.githubusercontent.com/specsnl/github-actions/{{.SPECS_ACTIONS_VERSION}}/bake/specs.hcl
+    desc: Fetch specs.hcl at the version of bake.yml in use
+    vars:
+      REF:
+        sh: grep -ohE 'specsnl/github-actions/\.github/workflows/bake\.yml@[^[:space:]#]+' .github/workflows/*.y*ml | head -1 | cut -d@ -f2
+    cmd: curl -fsSLo .specs.hcl https://raw.githubusercontent.com/specsnl/github-actions/{{.REF}}/bake/specs.hcl
 ```
 
 ## Building locally
 
 ```bash
-docker buildx bake -f specs.hcl -f docker-bake.hcl --print   # what would be built, with every tag and label
-docker buildx bake -f specs.hcl -f docker-bake.hcl            # build it
+docker buildx bake -f .specs.hcl -f docker-bake.hcl --print   # what would be built, with every tag and label
+docker buildx bake -f .specs.hcl -f docker-bake.hcl            # build it
 ```
 
 Locally the variables below keep their defaults: every image is tagged `:local` and labelled with version `dev`. To see
@@ -48,7 +42,7 @@ what a release would publish, set the variables the plan job would set:
 
 ```bash
 EVENT=push REF_TYPE=tag VERSION=1.2.3 IS_STABLE=true \
-  docker buildx bake -f specs.hcl -f docker-bake.hcl --print
+  docker buildx bake -f .specs.hcl -f docker-bake.hcl --print
 ```
 
 ## The variables CI sets
@@ -137,7 +131,7 @@ onto the multi-platform index and its descriptors as well, so every level report
 
 ## Examples
 
-Each example is a complete `docker-bake.hcl`, used next to `specs.hcl`.
+Each example is a complete `docker-bake.hcl`, read after `specs.hcl`.
 
 ### A plain image
 

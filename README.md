@@ -9,7 +9,7 @@ Consumers pin by tag, i.e. `specsnl/github-actions/.github/workflows/bake.yml@4.
 | Kind              | Name                   | Purpose                                                                  |
 |-------------------|------------------------|--------------------------------------------------------------------------|
 | Reusable workflow | `bake.yml`             | Build and publish every image a repository's `docker-bake.hcl` describes |
-| Bake file         | `bake/specs.hcl`       | The shared tag, label and annotation rules, vendored by each consumer    |
+| Bake file         | `bake/specs.hcl`       | The shared tag, label and annotation rules, supplied by `bake.yml`       |
 | Reusable workflow | `notify-slack-tag.yml` | Posts a Slack message when a tag is created                              |
 
 What to build — Dockerfiles, stages, image names, platforms, build args — lives in the consuming repository's
@@ -29,7 +29,7 @@ What to build — Dockerfiles, stages, image names, platforms, build args — li
 ## Development
 
 ```bash
-task lint     # actionlint
+task lint     # actionlint and shellcheck
 task zizmor   # zizmor, online audits when GH_TOKEN is set
-task test     # specs.hcl fixture tests, plan job tests, SPECS_HCL_SHA256
+task test     # specs.hcl fixture tests and the tests of the bake actions' scripts
 ```
