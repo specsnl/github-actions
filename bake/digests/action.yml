@@ -1,0 +1,22 @@
+name: Bake digests
+description: >-
+  Internal to .github/workflows/bake.yml. Writes the digests of a build job's images to
+  $RUNNER_TEMP/digests/digests-<slug>.json.
+
+inputs:
+  metadata:
+    description: The metadata output of docker/bake-action.
+    required: true
+  slug:
+    description: The platform as a name, i.e. "linux-amd64".
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Export the digests
+      shell: bash
+      env:
+        METADATA: ${{ inputs.metadata }}
+        SLUG: ${{ inputs.slug }}
+      run: bash "$GITHUB_ACTION_PATH/digests.sh"

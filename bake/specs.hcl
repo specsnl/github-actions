@@ -1,9 +1,11 @@
 # Shared tag, label and annotation rules for images built with specsnl/github-actions bake.yml.
 #
-# Vendored: copy this file into the consuming repository unchanged and update it when you move bake.yml to a new
-# version; the workflow warns when the copy differs. Build locally with:
+# bake.yml reads this file before the caller's bake files, at the version of bake.yml the caller uses, so a consuming
+# repository doesn't keep a copy. For a local build, fetch it at the commit of the repository's
+# `uses: specsnl/github-actions/.github/workflows/bake.yml@<sha>` line, and leave it out of git:
 #
-#   docker buildx bake -f specs.hcl -f docker-bake.hcl
+#   curl -fsSL -o .specs.hcl https://raw.githubusercontent.com/specsnl/github-actions/<sha>/bake/specs.hcl
+#   docker buildx bake -f .specs.hcl -f docker-bake.hcl
 #
 # The variables below are set by bake.yml's plan job. The defaults are what a local build gets.
 

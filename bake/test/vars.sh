@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Runs the "vars" step of bake.yml's plan job for a set of GitHub contexts and checks its outputs.
+# Runs bake/plan/vars.sh for a set of GitHub contexts and checks its outputs.
 set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 
-script=$(yq '.jobs.plan.steps[] | select(.id == "vars") | .run' .github/workflows/bake.yml)
 failed=0
 
 # check <description> <expected outputs> <environment...>
@@ -14,15 +13,14 @@ check() {
 
   local output status=0 actual
   output=$(mktemp)
-  env -i PATH="$PATH" GITHUB_OUTPUT="$output" GITHUB_REPOSITORY=specsnl/example "$@" bash -e -c "$script" > /dev/null 2>&1 || status=$?
+  env -i PATH="$PATH" GITHUB_OUTPUT="$output" GITHUB_REPOSITORY=specsnl/example "$@" bake/plan/vars.sh > /dev/null 2>&1 || status=$?
 
   if [ "$status" -ne 0 ]; then
     actual="exit=$status"
   else
     actual=$(awk '
+      /^created<</ { getline; getline; next }
       /<<EOF_/ { key = substr($0, 1, index($0, "<<") - 1); getline value; printf "%s=%s ", key, value; getline; next }
-      /^created=/ { next }
-      { printf "%s ", $0 }
     ' "$output" | sed 's/ $//')
   fi
   rm -f "$output"

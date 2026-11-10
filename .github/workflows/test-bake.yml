@@ -27,7 +27,6 @@ jobs:
       packages: write
     with:
       files: bake/test/e2e/docker-bake.hcl
-      specs-file: bake/specs.hcl
       push: ${{ inputs.push && 'true' || 'false' }}
     secrets:
       build-secrets: E2E_SECRET=e2e-secret

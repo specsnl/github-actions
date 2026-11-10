@@ -35,7 +35,13 @@ jobs:
           persist-credentials: false
       - name: Run the specs.hcl fixture tests
         run: bake/test/run.sh
-      - name: Run the plan job tests
-        run: bake/test/plan.sh
-      - name: Check SPECS_HCL_SHA256
-        run: bake/test/specs-hash.sh
+      - name: Run the plan tests
+        run: bake/test/vars.sh
+      - name: Run the build secrets tests
+        run: bake/test/secrets.sh
+      - name: Run the pipeline tests
+        run: bake/test/pipeline.sh
+      - name: Run shellcheck
+        run: >-
+          docker run --rm --volume "$PWD:/mnt" --workdir /mnt koalaman/shellcheck:v0.11.0
+          bake/lib.sh bake/*/*.sh bake/test/*.sh
