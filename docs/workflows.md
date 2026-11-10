@@ -1,129 +1,82 @@
 # Reusable workflow reference
 
-Every input, per workflow. Call them with
-`uses: specsnl/github-actions/.github/workflows/<file>@<tag>`.
+Every input, per workflow. Call them with `uses: specsnl/github-actions/.github/workflows/<file>@<tag>`.
 
-## `build.yml`
+## `bake.yml`
 
-Builds one platform and pushes it by digest. Run it once per platform.
+Builds and publishes every target of the consumer's bake files. See [Building images with bake](bake.md) and
+[How the image pipeline works](pipeline.md).
 
-| Input              | Type    | Default      | Description                                                      |
-|--------------------|---------|--------------|------------------------------------------------------------------|
-| `runs-on`          | string  | *required*   | Runner name, i.e. `ubuntu-24.04` or `ubuntu-24.04-arm`           |
-| `platform`         | string  | *required*   | Platform, i.e. `linux/amd64`                                     |
-| `image-name`       | string  | *required*   | Image name; lowercased before use                                |
-| `dockerfile`       | string  | `Dockerfile` | Dockerfile path                                                  |
-| `context`          | string  | `.`          | Build context path                                               |
-| `target`           | string  | —            | Dockerfile stage to build; omit for the default (last) stage     |
-| `title`            | string  | —            | Overrides `org.opencontainers.image.title`                       |
-| `description`      | string  | —            | Overrides `org.opencontainers.image.description`                 |
-| `version`          | string  | —            | Sets `org.opencontainers.image.version`; match `merge.yml`'s     |
-| `secrets`          | string  | —            | Secrets to expose to the build (multiline)                       |
-| `build-args`       | string  | —            | Build-time variables (multiline `KEY=value`)                     |
-| `push`             | string  | —            | `"true"` / `"false"`; defaults to pushing, except for dependabot |
-| `disable-apparmor` | boolean | `false`      | Disable AppArmor on the runner before building                   |
+| Input              | Type    | Default           | Description                                                                            |
+|--------------------|---------|-------------------|----------------------------------------------------------------------------------------|
+| `files`            | string  | `docker-bake.hcl` | The consumer's bake files (multiline), read after this version's `bake/specs.hcl`      |
+| `targets`          | string  | —                 | Targets or groups to build (multiline); the `default` group when empty                 |
+| `version`          | string  | —                 | Overrides `VERSION`; see [how it is worked out](bake.md#the-variables-ci-sets)         |
+| `dispatch-tag`     | string  | `latest`          | Tag published by a `workflow_dispatch` run; lowercased                                 |
+| `push`             | string  | —                 | `"true"` / `"false"`; see [when nothing is pushed](pipeline.md#when-nothing-is-pushed) |
+| `runners`          | string  | —                 | JSON object mapping a platform to its runner, merged over the defaults below           |
+| `disable-apparmor` | boolean | `false`           | Disable AppArmor on the build runners before building                                  |
+| `timeout-minutes`  | number  | `60`              | Timeout of each build job                                                              |
 
-The registry login step is skipped for dependabot, which is why `push` defaults the way it does.
+| Secret          | Required | Description                                                                          |
+|-----------------|----------|--------------------------------------------------------------------------------------|
+| `build-secrets` | no       | `NAME=value` lines, each masked and exported to the build as an environment variable |
 
-## `merge.yml`
+| Output    | Description                                           |
+|-----------|-------------------------------------------------------|
+| `version` | The `VERSION` the images were built with              |
+| `push`    | Whether the images were pushed (`"true"` / `"false"`) |
 
-Merges the digests from `build.yml` into one tagged multi-arch manifest. Run it once, with `needs:` on the build job.
-When `push` is off — by default for dependabot — the job still runs but skips every step, so a required `Merge Images`
-check reports success.
+The default runners are `ubuntu-26.04` for `linux/amd64` and `ubuntu-26.04-arm` for `linux/arm64`. A platform without
+a runner fails the plan job. A runner may be a label or a list of labels:
 
-| Input         | Type   | Default    | Description                                                          |
-|---------------|--------|------------|----------------------------------------------------------------------|
-| `runs-on`     | string | *required* | Runner name                                                          |
-| `image-name`  | string | *required* | Image name; multiline tags one manifest under several names          |
-| `target`      | string | —          | The target the digests were built from; must match the build job     |
-| `title`       | string | —          | Overrides `org.opencontainers.image.title`                           |
-| `description` | string | —          | Overrides `org.opencontainers.image.description`                     |
-| `version`     | string | —          | Sets `org.opencontainers.image.version`                              |
-| `raw-tag`     | string | `latest`   | Tag used on `workflow_dispatch` runs                                 |
-| `raw-tags`    | string | —          | Extra `metadata-action` tag directives (multiline), appended         |
-| `flavor`      | string | —          | `metadata-action` flavor directives (multiline), i.e. `latest=false` |
-| `push`        | string | —          | `"true"` / `"false"`; defaults to pushing, except for dependabot     |
+```yaml
+    with:
+      runners: '{"linux/arm64": ["self-hosted", "arm64"]}'
+```
 
-See [How the image pipeline works](pipeline.md#tags) for what gets tagged by default.
+A build secret's value must fit on one line. The bake file refers to it by its name:
+`secret = ["id=composer_auth,env=COMPOSER_AUTH"]`. Names of the runner's own variables (`GITHUB_*`, `RUNNER_*`,
+`ACTIONS_*`, `PATH`, …) are refused.
 
-## `build-php.yml`
+The caller has to grant:
 
-Fans out into one `build.yml` call per PHP stage. See [PHP images](php.md).
+```yaml
+permissions:
+  contents: read
+  packages: write
+```
 
-| Input              | Type    | Default      | Description                                    |
-|--------------------|---------|--------------|------------------------------------------------|
-| `runs-on`          | string  | *required*   | Runner name                                    |
-| `platform`         | string  | *required*   | Platform                                       |
-| `image-name`       | string  | *required*   | Base image name; stages nest under it          |
-| `dockerfile`       | string  | `Dockerfile` | Dockerfile path                                |
-| `title`            | string  | —            | Applied to both stages                         |
-| `description`      | string  | —            | Applied to both stages                         |
-| `secrets`          | string  | —            | Secrets to expose to the build                 |
-| `disable-apparmor` | boolean | `false`      | Disable AppArmor on the runner before building |
+| Job       | Check name         | Runs on                      |
+|-----------|--------------------|------------------------------|
+| `plan`    | `Plan`             | `ubuntu-26.04`               |
+| `build`   | `Build <platform>` | The platform's runner        |
+| `publish` | `Publish`          | `ubuntu-26.04`, when pushing |
+| `status`  | `Image`            | `ubuntu-26.04`, always       |
 
-## `merge-php.yml`
-
-Fans out into one `merge.yml` call per PHP stage.
-
-| Input                 | Type   | Default    | Description                       |
-|-----------------------|--------|------------|-----------------------------------|
-| `runs-on`             | string | *required* | Runner name                       |
-| `image-name`          | string | *required* | Base image name                   |
-| `title-runtime`       | string | —          | Title for the runtime image       |
-| `description-runtime` | string | —          | Description for the runtime image |
-| `title-builder`       | string | —          | Title for the builder image       |
-| `description-builder` | string | —          | Description for the builder image |
-| `raw-tag`             | string | `latest`   | Tag used on `workflow_dispatch`   |
-
-## `build-go-cli.yml`
-
-`build.yml` plus the version build arg. See [Go CLI images](go-cli.md).
-
-| Input               | Type    | Default      | Description                                                      |
-|---------------------|---------|--------------|------------------------------------------------------------------|
-| `runs-on`           | string  | *required*   | Runner name                                                      |
-| `platform`          | string  | *required*   | Platform                                                         |
-| `image-name`        | string  | *required*   | Image name                                                       |
-| `version`           | string  | *required*   | Version injected into the binary, i.e. the release tag           |
-| `version-build-arg` | string  | *required*   | Dockerfile ARG the version is passed to, i.e. `SPECS_VERSION`    |
-| `dockerfile`        | string  | `Dockerfile` | Dockerfile path                                                  |
-| `context`           | string  | `.`          | Build context path                                               |
-| `target`            | string  | —            | Dockerfile stage to publish                                      |
-| `title`             | string  | —            | Overrides `org.opencontainers.image.title`                       |
-| `description`       | string  | —            | Overrides `org.opencontainers.image.description`                 |
-| `build-args`        | string  | —            | Additional build-time variables, appended to the version arg     |
-| `secrets`           | string  | —            | Secrets to expose to the build                                   |
-| `push`              | string  | —            | `"true"` / `"false"`; defaults to pushing, except for dependabot |
-| `disable-apparmor`  | boolean | `false`      | Disable AppArmor on the runner before building                   |
-
-## `merge-go-cli.yml`
-
-`merge.yml` plus the semver tag set a CLI release wants.
-
-| Input         | Type    | Default    | Description                                                               |
-|---------------|---------|------------|---------------------------------------------------------------------------|
-| `runs-on`     | string  | *required* | Runner name                                                               |
-| `image-name`  | string  | *required* | Image name                                                                |
-| `target`      | string  | —          | The target the digests were built from                                    |
-| `variant`     | string  | —          | Publish as a tag-suffixed variant, i.e. `alpine`                          |
-| `version`     | string  | —          | Sets `org.opencontainers.image.version`; defaults to the tag without `v`  |
-| `title`       | string  | —          | Overrides `org.opencontainers.image.title`                                |
-| `description` | string  | —          | Overrides `org.opencontainers.image.description`                          |
-| `latest`      | boolean | `true`     | Move `:latest` (or `:<variant>`); only ever applies to a stable tag       |
-| `raw-tag`     | string  | `latest`   | Tag used on `workflow_dispatch` runs                                      |
-| `raw-tags`    | string  | —          | Extra tag directives, appended after this workflow's                      |
-| `flavor`      | string  | —          | Extra flavor directives, appended after this workflow's, so they override |
-| `push`        | string  | —          | `"true"` / `"false"`; defaults to pushing, except for dependabot          |
+Require only `Image`.
 
 ## `notify-slack-tag.yml`
 
-Posts a Slack message with the tag, repository, actor and a link to the release.
+Posts a Slack message with the tag, repository, actor and a link to the release. The incoming webhook decides the
+channel.
 
-| Input     | Type   | Default     | Description             |
-|-----------|--------|-------------|-------------------------|
-| `runs-on` | string | *required*  | Runner name             |
-| `channel` | string | `#releases` | Slack channel to notify |
+| Input     | Type   | Default        | Description |
+|-----------|--------|----------------|-------------|
+| `runs-on` | string | `ubuntu-26.04` | Runner name |
 
 | Secret              | Required | Description                |
 |---------------------|----------|----------------------------|
 | `slack-webhook-url` | yes      | Slack incoming webhook URL |
+
+```yaml
+on:
+  push:
+    tags: ['*']
+
+jobs:
+  notify:
+    uses: specsnl/github-actions/.github/workflows/notify-slack-tag.yml@4.0.0
+    secrets:
+      slack-webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+```

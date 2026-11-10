@@ -1,101 +1,101 @@
 # How the image pipeline works
 
-Every image in this repository is published in the same two phases, whichever workflow pair you call.
+`bake.yml` runs four jobs: plan, build, publish and status.
 
-## Phase 1 — build, one job per platform
+```
+plan ──► build linux/amd64 ──┐
+     └─► build linux/arm64 ──┴─► publish ──► status ("Image")
+```
 
-`build.yml` builds a single platform and pushes it to the registry **by digest**: no tags, just a manifest blob. It
-then writes the digest to a file and uploads it as an artifact.
+## Plan — work everything out once
 
-Nothing is tagged yet, so a half-finished matrix never leaves a `:latest` pointing at one architecture.
+The plan job works out everything that depends on the run, once:
 
-## Phase 2 — merge, one job for all platforms
+- the bake variables — `VERSION`, the event, the ref, `IS_STABLE`, the revision, one `CREATED` timestamp, and the
+  repository's name, description and license (see [the variables CI sets](bake.md#the-variables-ci-sets));
+- whether to push (see [below](#when-nothing-is-pushed)).
 
-`merge.yml` downloads every digest artifact from phase 1 and runs `docker buildx imagetools create` to build one
-multi-arch manifest from them, tagged with everything `metadata-action` produced. It finishes by inspecting the result,
-so the job log shows what was actually published.
+It then runs `docker buildx bake --print` on the consumer's bake files with those variables set, and **freezes** the
+result: the printed JSON, with each target's `output` replaced by a push by digest to its first image name, and its
+tags set aside for the publish job. Both go into one artifact.
 
-Run the build job once per platform (a matrix) and the merge job once, with `needs:` on the build job.
+Every later job builds from that frozen definition instead of evaluating the HCL again. That is what guarantees every
+platform and the publish job see identical tags and labels — including `created`, which would otherwise differ per
+job.
 
-## Digests are namespaced per image and per target
+The plan job also:
 
-The artifact is named `digests-<image-name>-<target>-<platform>`, with `/` replaced by `-` and an absent target
-recorded as `_NO_TARGET_`. The merge job downloads with the pattern `digests-<image-name>-<target>-*`.
+- outputs the platforms, the union over all targets, as the build matrix, each with its runner from the `runners`
+  input;
+- reads `specs.hcl` from this repository, at the version of the workflow, before the consumer's bake files;
+- fails early, with the target named, when a target has no `platforms`, or has no tags for an event it would push.
 
-That namespacing is what lets a single run publish several images without them bleeding into each other — the two
-PHP stages, or a `debian` and an `alpine` variant of the same CLI. Each build/merge pair only ever sees its own
-digests.
+The run summary shows every target, its platforms and its tags.
 
-Artifacts are kept for one day. They are an implementation detail of a single run, not a build record.
+## Build — one job per platform, all targets at once
 
-## Tags
+`build` runs once per platform, named `Build <platform>`. Each job checks out the repository, narrows the frozen
+definition to the targets that list its platform, and builds all of them in one `docker/bake-action` run, so stages
+of the same Dockerfile share their layers. A target without that platform is skipped by that job, so targets can have
+different platform sets.
 
-Tagging happens entirely in phase 2, from `metadata-action`. `create-manifest` always emits:
+Each image is pushed **by digest**: no tags, just the manifest. Nothing is tagged yet, so a half-finished run never
+leaves a `:latest` pointing at one architecture. The digests are read from bake's metadata and uploaded as one
+artifact per platform.
 
-| Directive                 | Produces                                             |
-|---------------------------|------------------------------------------------------|
-| `type=schedule`           | `nightly` on a scheduled run                         |
-| `type=ref,event=branch`   | The branch name, i.e. `main`                         |
-| `type=ref,event=tag`      | The tag name verbatim, i.e. `v1.2.3` or `2.2.0`      |
-| `type=ref,event=pr`       | `pr-<number>`                                        |
-| `type=raw`, on dispatch   | The `raw-tag` input, lowercased, `latest` by default |
+Each target gets its own GitHub Actions cache scope, `<image>-<target>-<platform>`, so two images built from the same
+Dockerfile and stage no longer overwrite each other's cache.
 
-That last one is filtered with `enable=${{ github.event_name == 'workflow_dispatch' }}`, not
-`event=workflow_dispatch`. `event=` belongs to `type=ref`; `type=raw` takes only `enable`, `priority`, `prefix`,
-`suffix` and `value`. An `event=` written on a `type=raw` directive does not fail — metadata-action ignores the
-attribute it does not know, and the tag silently becomes unconditional. That is worth remembering when editing
-either tags block: the mistake has no symptom until a tag lands somewhere it should not.
+## Publish — one job for all targets
 
-`build-image` carries the same five directives, where they have no effect on the registry — that build pushes by
-digest, so its computed tags are never applied. What they do decide is `org.opencontainers.image.version` on the
-per-platform manifests and image configs. `imagetools create` cannot change those after the fact, as they are
-addressed by their digest, so the version has to be right when they are built.
+`publish` downloads the frozen definition and every digest artifact, and for each target runs
+`docker buildx imagetools create` with the target's digests, tags, and labels as `index:` and `manifest-descriptor:`
+annotations. It then inspects the result by its first tag, so the log shows what was actually published.
 
-`raw-tags` and `flavor` below exist only on `create-manifest`. When you use them, the version the merge derives can
-differ from the build's — a `type=semver` tag turns `v1.2.3` into `1.2.3`, a `suffix=-alpine` appends to it. Pass the
-same `version` to both the build and the merge to keep them identical; [`build-go-cli.yml` and
-`merge-go-cli.yml`](go-cli.md) do that for you.
+It doesn't check out the repository: it only needs the artifacts.
 
-Two inputs extend that:
+## Status — one check
 
-- `raw-tags` is appended to the directives above, for anything else you want tagged — i.e. the semver set
-  `merge-go-cli.yml` adds.
-- `flavor` is passed to `metadata-action`'s flavor block: `latest=false` to stop a tag from moving `:latest`,
-  `prefix=` / `suffix=` to publish a variant under the same image name.
+`status`, named `Image`, always runs and fails unless plan succeeded and build and publish succeeded or were skipped.
+Require that one check: there is one call per repository, so it covers every image the repository publishes. A caller
+sees it as `<calling job> / Image`.
 
-`:latest` is worth understanding. `metadata-action` defaults to `latest=auto`, and under `auto` a
-`type=ref,event=tag` match sets it — for *any* tag, prereleases included. If you publish an `-rc` channel, pass
-`flavor: latest=false` and add your own guarded `latest` tag through `raw-tags`, which is what
-[`merge-go-cli.yml`](go-cli.md) does.
+## Metadata, in every place
 
-Note that `flavor: latest=false` only governs the implicit `:latest` that `type=ref` and `type=semver` bring with
-them. It has no effect on an explicit `type=raw,value=latest`, which is why the dispatch directive above needs a
-filter of its own rather than relying on the flavor.
+The version and the other `org.opencontainers.image.*` values come from `specs_labels` and end up in four places, all
+from the same frozen definition:
 
-## Labels and annotations
+| Where                        | Set by                                                    |
+|------------------------------|-----------------------------------------------------------|
+| The image config labels      | The build, from the target's `labels`                     |
+| The platform manifest        | The build, from the target's `annotations`                |
+| The index                    | Publish, from the target's labels as `index:` annotations |
+| The descriptors in the index | Publish, as `manifest-descriptor:` annotations            |
 
-`title`, `description` and `version` override the corresponding `org.opencontainers.image.*` values. Anything left
-empty falls back to what `metadata-action` derives from the repository.
+To check a published image:
 
-`build-image` writes them as labels on the image config and as annotations on the per-platform manifest.
-`create-manifest` applies them to the manifest as both `index:` and `manifest-descriptor:` annotations, so they show up
-whether a tool reads the index or the descriptor pointing at it. Both drop a key whose value is empty instead of
-writing `key=`, so an event without a derived version leaves `org.opencontainers.image.version` out altogether.
+```bash
+docker buildx imagetools inspect <ref> --raw | jq .annotations
+d=$(docker buildx imagetools inspect <ref> --raw | jq -r '.manifests[0].digest')
+docker buildx imagetools inspect <image>@$d --raw | jq .annotations
+docker buildx imagetools inspect <ref> --format '{{json .Image}}' | jq '."linux/amd64".config.Labels'
+```
 
-## Several image names for one manifest
+## When nothing is pushed
 
-`create-manifest` accepts a multiline `image-name`. The first line is the primary name — the one the digests were
-pushed under and the one the inspect step reports — and every line is tagged from the same manifest. `merge-php.yml`
-uses this to publish the builder under its old `builder_nodejs` and `node` names as well.
+`push` defaults to `true`, except for:
 
-## What dependabot gets
+- a pull request opened by dependabot — also when a person re-runs its jobs, because the token stays read-only;
+- a pull request from a fork, whose token is read-only too;
+- a push to a `dependabot/…` branch;
+- an event the [tag rules](bake.md#specs_tagsimages-variant) don't cover, such as `merge_group`.
 
-Dependabot pull requests only ever build; they never publish.
+Set the `push` input to override it. Without a push the build still runs — with `type=cacheonly` output, filling the
+cache — and publish is skipped, so a dependency bump still has to build before it can be merged. `Image` reports
+success.
 
-- The registry login step in `build.yml` is skipped.
-- `build-image` defaults `push` to false, so the build runs but writes nothing to the registry.
-- `merge.yml` defaults `push` to false too, so its job runs but skips every step and nothing is tagged. It is not
-  skipped as a whole job: GitHub would report that under its unevaluated name, and a required `Merge Images` check would
-  never pass.
+## Artifacts
 
-The point is that the build itself still has to succeed before a dependency bump can be merged.
+The definition and digest artifacts are named `bake-<id>-definition` and `bake-<id>-digests-<platform>`, where `<id>`
+is derived from the `files` and `targets` inputs, so one run can call the workflow more than once. They
+are kept for one day: they belong to a single run, not to a build record.

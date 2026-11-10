@@ -1,9 +1,9 @@
 # Base images
 
-These workflows take a `target` — the Dockerfile stage to publish — and nothing else. They deliberately do **not**
-offer a menu of base images to pick from.
+The consuming repository's `docker-bake.hcl` names the Dockerfile stage each target publishes. Neither `bake.yml` nor
+`specs.hcl` offers a menu of base images to pick from, and they deliberately won't.
 
-## Why there is no `base-image` input
+## Why there is no `base-image` setting
 
 The tempting design is a menu: let the caller pick `scratch`, `debian`, `debian-slim` or `alpine`. That is the wrong
 abstraction, because the choice is not a preference. It is a property of what the binary does at runtime, and nothing
@@ -24,7 +24,7 @@ what the binary needs.
 
 ## Variants are a per-repository decision too
 
-The [capability to publish variants](go-cli.md#publishing-variants) lives here; whether to use it does not.
+The [capability to publish variants](bake.md#a-go-cli-with-variants) lives here; whether to use it does not.
 
 An `alpine` variant of specs-cli would not be `apk add --no-cache bash` and done. That part is one line. The part that
 is not fixable in a line: template hooks are arbitrary user-written shell, and busybox `sed` and `grep` differ from the
@@ -36,4 +36,4 @@ A Go CLI that does not shell out has no such problem and can publish both freely
 ## If a shared Dockerfile is wanted later
 
 That is a separate concern. It is worth starting by not encoding a choice that would then have to be unpicked — a
-`target` input stays correct either way, because a shared Dockerfile still has stages.
+bake target naming a stage stays correct either way, because a shared Dockerfile still has stages.
