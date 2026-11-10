@@ -1,0 +1,628 @@
+== outputs outputs.txt
+matrix<<EOF
+[{"platform":"linux/amd64","slug":"linux-amd64","runner":"ubuntu-26.04"},{"platform":"linux/arm64","slug":"linux-arm64","runner":"arm-runner"}]
+EOF
+artifact<<EOF
+bake-84f32ca7fae9
+EOF
+
+== summary summary
+### Bake definition
+
+Version `1.2.3`, push `true`.
+
+| Target | Platforms | Tags |
+|--------|-----------|------|
+| `app` | linux/amd64, linux/arm64 | `ghcr.io/specsnl/github-actions/e2e:1.2.3`<br>`ghcr.io/specsnl/github-actions/e2e:1.2`<br>`ghcr.io/specsnl/github-actions/e2e:1`<br>`ghcr.io/specsnl/github-actions/e2e:latest` |
+| `cli-alpine` | linux/amd64 | `ghcr.io/specsnl/github-actions/e2e-cli:1.2.3-alpine`<br>`ghcr.io/specsnl/github-actions/e2e-cli:1.2-alpine`<br>`ghcr.io/specsnl/github-actions/e2e-cli:1-alpine`<br>`ghcr.io/specsnl/github-actions/e2e-cli:alpine` |
+| `cli-debian` | linux/amd64, linux/arm64 | `ghcr.io/specsnl/github-actions/e2e-cli:1.2.3`<br>`ghcr.io/specsnl/github-actions/e2e-cli:1.2`<br>`ghcr.io/specsnl/github-actions/e2e-cli:1`<br>`ghcr.io/specsnl/github-actions/e2e-cli:latest` |
+
+== bake definition.json
+{
+  "group": {
+    "default": {
+      "targets": [
+        "app",
+        "cli-alpine",
+        "cli-debian"
+      ]
+    }
+  },
+  "target": {
+    "app": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=End-to-end test image of specsnl/github-actions",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e app",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "End-to-end test image of specsnl/github-actions",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e app",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "secret": [
+        {
+          "env": "E2E_SECRET",
+          "id": "e2e"
+        }
+      ],
+      "target": "app"
+    },
+    "cli-alpine": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=An example repository",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e cli",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "args": {
+        "E2E_VERSION": "1.2.3"
+      },
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "An example repository",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e cli",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "target": "alpine"
+    },
+    "cli-debian": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=An example repository",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e cli",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "args": {
+        "E2E_VERSION": "1.2.3"
+      },
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "An example repository",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e cli",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "target": "debian"
+    }
+  }
+}
+
+== bake publish.json
+{
+  "app": {
+    "image": "ghcr.io/specsnl/github-actions/e2e",
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "End-to-end test image of specsnl/github-actions",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "e2e app",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "1.2.3"
+    },
+    "platforms": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "tags": [
+      "ghcr.io/specsnl/github-actions/e2e:1.2.3",
+      "ghcr.io/specsnl/github-actions/e2e:1.2",
+      "ghcr.io/specsnl/github-actions/e2e:1",
+      "ghcr.io/specsnl/github-actions/e2e:latest"
+    ]
+  },
+  "cli-alpine": {
+    "image": "ghcr.io/specsnl/github-actions/e2e-cli",
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "e2e cli",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "1.2.3"
+    },
+    "platforms": [
+      "linux/amd64"
+    ],
+    "tags": [
+      "ghcr.io/specsnl/github-actions/e2e-cli:1.2.3-alpine",
+      "ghcr.io/specsnl/github-actions/e2e-cli:1.2-alpine",
+      "ghcr.io/specsnl/github-actions/e2e-cli:1-alpine",
+      "ghcr.io/specsnl/github-actions/e2e-cli:alpine"
+    ]
+  },
+  "cli-debian": {
+    "image": "ghcr.io/specsnl/github-actions/e2e-cli",
+    "labels": {
+      "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+      "org.opencontainers.image.description": "An example repository",
+      "org.opencontainers.image.licenses": "MIT",
+      "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+      "org.opencontainers.image.source": "https://github.com/specsnl/example",
+      "org.opencontainers.image.title": "e2e cli",
+      "org.opencontainers.image.url": "https://github.com/specsnl/example",
+      "org.opencontainers.image.version": "1.2.3"
+    },
+    "platforms": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "tags": [
+      "ghcr.io/specsnl/github-actions/e2e-cli:1.2.3",
+      "ghcr.io/specsnl/github-actions/e2e-cli:1.2",
+      "ghcr.io/specsnl/github-actions/e2e-cli:1",
+      "ghcr.io/specsnl/github-actions/e2e-cli:latest"
+    ]
+  }
+}
+
+== bake matrix.json
+[
+  {
+    "platform": "linux/amd64",
+    "runner": "ubuntu-26.04",
+    "slug": "linux-amd64"
+  },
+  {
+    "platform": "linux/arm64",
+    "runner": "arm-runner",
+    "slug": "linux-arm64"
+  }
+]
+
+== bake definition-linux-amd64.json
+{
+  "group": {
+    "default": {
+      "targets": [
+        "app",
+        "cli-alpine",
+        "cli-debian"
+      ]
+    }
+  },
+  "target": {
+    "app": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=End-to-end test image of specsnl/github-actions",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e app",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "cache-from": [
+        "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-amd64"
+      ],
+      "cache-to": [
+        "type=gha,mode=max,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-amd64"
+      ],
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "End-to-end test image of specsnl/github-actions",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e app",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "secret": [
+        {
+          "env": "E2E_SECRET",
+          "id": "e2e"
+        }
+      ],
+      "target": "app"
+    },
+    "cli-alpine": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=An example repository",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e cli",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "args": {
+        "E2E_VERSION": "1.2.3"
+      },
+      "cache-from": [
+        "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-alpine-linux-amd64"
+      ],
+      "cache-to": [
+        "type=gha,mode=max,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-alpine-linux-amd64"
+      ],
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "An example repository",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e cli",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "target": "alpine"
+    },
+    "cli-debian": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=An example repository",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e cli",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "args": {
+        "E2E_VERSION": "1.2.3"
+      },
+      "cache-from": [
+        "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-amd64"
+      ],
+      "cache-to": [
+        "type=gha,mode=max,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-amd64"
+      ],
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "An example repository",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e cli",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/amd64"
+      ],
+      "target": "debian"
+    }
+  }
+}
+
+== bake definition-linux-arm64.json
+{
+  "group": {
+    "default": {
+      "targets": [
+        "app",
+        "cli-debian"
+      ]
+    }
+  },
+  "target": {
+    "app": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=End-to-end test image of specsnl/github-actions",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e app",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "cache-from": [
+        "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-arm64"
+      ],
+      "cache-to": [
+        "type=gha,mode=max,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-arm64"
+      ],
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "End-to-end test image of specsnl/github-actions",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e app",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/arm64"
+      ],
+      "secret": [
+        {
+          "env": "E2E_SECRET",
+          "id": "e2e"
+        }
+      ],
+      "target": "app"
+    },
+    "cli-debian": {
+      "annotations": [
+        "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
+        "manifest:org.opencontainers.image.description=An example repository",
+        "manifest:org.opencontainers.image.licenses=MIT",
+        "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
+        "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.title=e2e cli",
+        "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
+        "manifest:org.opencontainers.image.version=1.2.3"
+      ],
+      "args": {
+        "E2E_VERSION": "1.2.3"
+      },
+      "cache-from": [
+        "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-arm64"
+      ],
+      "cache-to": [
+        "type=gha,mode=max,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-arm64"
+      ],
+      "context": "bake/test/e2e",
+      "dockerfile": "Dockerfile",
+      "labels": {
+        "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
+        "org.opencontainers.image.description": "An example repository",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
+        "org.opencontainers.image.source": "https://github.com/specsnl/example",
+        "org.opencontainers.image.title": "e2e cli",
+        "org.opencontainers.image.url": "https://github.com/specsnl/example",
+        "org.opencontainers.image.version": "1.2.3"
+      },
+      "output": [
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      ],
+      "platforms": [
+        "linux/arm64"
+      ],
+      "target": "debian"
+    }
+  }
+}
+
+== digests digests-linux-amd64.json
+{
+  "app": "sha256:app-linux-amd64",
+  "cli-alpine": "sha256:cli-alpine-linux-amd64",
+  "cli-debian": "sha256:cli-debian-linux-amd64"
+}
+
+== digests digests-linux-arm64.json
+{
+  "app": "sha256:app-linux-arm64",
+  "cli-debian": "sha256:cli-debian-linux-arm64"
+}
+
+== docker docker
+docker
+  buildx
+  imagetools
+  create
+  --tag
+  ghcr.io/specsnl/github-actions/e2e:1.2.3
+  --tag
+  ghcr.io/specsnl/github-actions/e2e:1.2
+  --tag
+  ghcr.io/specsnl/github-actions/e2e:1
+  --tag
+  ghcr.io/specsnl/github-actions/e2e:latest
+  --annotation
+  index:org.opencontainers.image.created=2026-11-09T12:00:00Z
+  --annotation
+  manifest-descriptor:org.opencontainers.image.created=2026-11-09T12:00:00Z
+  --annotation
+  index:org.opencontainers.image.description=End-to-end\ test\ image\ of\ specsnl/github-actions
+  --annotation
+  manifest-descriptor:org.opencontainers.image.description=End-to-end\ test\ image\ of\ specsnl/github-actions
+  --annotation
+  index:org.opencontainers.image.licenses=MIT
+  --annotation
+  manifest-descriptor:org.opencontainers.image.licenses=MIT
+  --annotation
+  index:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567
+  --annotation
+  manifest-descriptor:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567
+  --annotation
+  index:org.opencontainers.image.source=https://github.com/specsnl/example
+  --annotation
+  manifest-descriptor:org.opencontainers.image.source=https://github.com/specsnl/example
+  --annotation
+  index:org.opencontainers.image.title=e2e\ app
+  --annotation
+  manifest-descriptor:org.opencontainers.image.title=e2e\ app
+  --annotation
+  index:org.opencontainers.image.url=https://github.com/specsnl/example
+  --annotation
+  manifest-descriptor:org.opencontainers.image.url=https://github.com/specsnl/example
+  --annotation
+  index:org.opencontainers.image.version=1.2.3
+  --annotation
+  manifest-descriptor:org.opencontainers.image.version=1.2.3
+  ghcr.io/specsnl/github-actions/e2e@sha256:app-linux-amd64
+  ghcr.io/specsnl/github-actions/e2e@sha256:app-linux-arm64
+docker
+  buildx
+  imagetools
+  inspect
+  ghcr.io/specsnl/github-actions/e2e:1.2.3
+docker
+  buildx
+  imagetools
+  create
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:1.2.3-alpine
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:1.2-alpine
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:1-alpine
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:alpine
+  --annotation
+  index:org.opencontainers.image.created=2026-11-09T12:00:00Z
+  --annotation
+  manifest-descriptor:org.opencontainers.image.created=2026-11-09T12:00:00Z
+  --annotation
+  index:org.opencontainers.image.description=An\ example\ repository
+  --annotation
+  manifest-descriptor:org.opencontainers.image.description=An\ example\ repository
+  --annotation
+  index:org.opencontainers.image.licenses=MIT
+  --annotation
+  manifest-descriptor:org.opencontainers.image.licenses=MIT
+  --annotation
+  index:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567
+  --annotation
+  manifest-descriptor:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567
+  --annotation
+  index:org.opencontainers.image.source=https://github.com/specsnl/example
+  --annotation
+  manifest-descriptor:org.opencontainers.image.source=https://github.com/specsnl/example
+  --annotation
+  index:org.opencontainers.image.title=e2e\ cli
+  --annotation
+  manifest-descriptor:org.opencontainers.image.title=e2e\ cli
+  --annotation
+  index:org.opencontainers.image.url=https://github.com/specsnl/example
+  --annotation
+  manifest-descriptor:org.opencontainers.image.url=https://github.com/specsnl/example
+  --annotation
+  index:org.opencontainers.image.version=1.2.3
+  --annotation
+  manifest-descriptor:org.opencontainers.image.version=1.2.3
+  ghcr.io/specsnl/github-actions/e2e-cli@sha256:cli-alpine-linux-amd64
+docker
+  buildx
+  imagetools
+  inspect
+  ghcr.io/specsnl/github-actions/e2e-cli:1.2.3-alpine
+docker
+  buildx
+  imagetools
+  create
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:1.2.3
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:1.2
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:1
+  --tag
+  ghcr.io/specsnl/github-actions/e2e-cli:latest
+  --annotation
+  index:org.opencontainers.image.created=2026-11-09T12:00:00Z
+  --annotation
+  manifest-descriptor:org.opencontainers.image.created=2026-11-09T12:00:00Z
+  --annotation
+  index:org.opencontainers.image.description=An\ example\ repository
+  --annotation
+  manifest-descriptor:org.opencontainers.image.description=An\ example\ repository
+  --annotation
+  index:org.opencontainers.image.licenses=MIT
+  --annotation
+  manifest-descriptor:org.opencontainers.image.licenses=MIT
+  --annotation
+  index:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567
+  --annotation
+  manifest-descriptor:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567
+  --annotation
+  index:org.opencontainers.image.source=https://github.com/specsnl/example
+  --annotation
+  manifest-descriptor:org.opencontainers.image.source=https://github.com/specsnl/example
+  --annotation
+  index:org.opencontainers.image.title=e2e\ cli
+  --annotation
+  manifest-descriptor:org.opencontainers.image.title=e2e\ cli
+  --annotation
+  index:org.opencontainers.image.url=https://github.com/specsnl/example
+  --annotation
+  manifest-descriptor:org.opencontainers.image.url=https://github.com/specsnl/example
+  --annotation
+  index:org.opencontainers.image.version=1.2.3
+  --annotation
+  manifest-descriptor:org.opencontainers.image.version=1.2.3
+  ghcr.io/specsnl/github-actions/e2e-cli@sha256:cli-debian-linux-amd64
+  ghcr.io/specsnl/github-actions/e2e-cli@sha256:cli-debian-linux-arm64
+docker
+  buildx
+  imagetools
+  inspect
+  ghcr.io/specsnl/github-actions/e2e-cli:1.2.3

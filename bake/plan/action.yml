@@ -1,0 +1,87 @@
+name: Bake plan
+description: >-
+  Internal to .github/workflows/bake.yml. Works out the run's variables and resolves the bake files, with this
+  repository's bake/specs.hcl first, into the definition, publish list and build matrix in $RUNNER_TEMP/bake.
+
+inputs:
+  files:
+    description: The bake files (multiline).
+    required: true
+  targets:
+    description: Bake targets or groups to build (multiline).
+    required: false
+  version:
+    description: The VERSION bake variable, if set explicitly.
+    required: false
+  dispatch-tag:
+    description: Tag published by a workflow_dispatch run.
+    required: false
+  push:
+    description: '"true" or "false", if set explicitly.'
+    required: false
+  runners:
+    description: JSON object mapping a platform to its runner.
+    required: false
+  token:
+    description: Token to read the repository's metadata with.
+    default: ${{ github.token }}
+
+outputs:
+  version:
+    description: The VERSION the images are built with.
+    value: ${{ steps.vars.outputs.version }}
+  push:
+    description: Whether the images are pushed ("true" or "false").
+    value: ${{ steps.vars.outputs.push }}
+  matrix:
+    description: The build jobs, as a JSON array of {platform, slug, runner}.
+    value: ${{ steps.freeze.outputs.matrix }}
+  artifact:
+    description: The prefix of this call's artifact names.
+    value: ${{ steps.freeze.outputs.artifact }}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Work out the run's variables
+      id: vars
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_DISPATCH_TAG: ${{ inputs.dispatch-tag }}
+        INPUT_PUSH: ${{ inputs.push }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      run: bash "$GITHUB_ACTION_PATH/vars.sh"
+
+    - name: Read the repository
+      id: repository
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: bash "$GITHUB_ACTION_PATH/repository.sh"
+
+    - name: Freeze the bake definition
+      id: freeze
+      shell: bash
+      env:
+        FILES: ${{ inputs.files }}
+        TARGETS: ${{ inputs.targets }}
+        RUNNERS: ${{ inputs.runners }}
+        PUSH: ${{ steps.vars.outputs.push }}
+        VERSION: ${{ steps.vars.outputs.version }}
+        DISPATCH_TAG: ${{ steps.vars.outputs.dispatch-tag }}
+        IS_STABLE: ${{ steps.vars.outputs.is-stable }}
+        CREATED: ${{ steps.vars.outputs.created }}
+        EVENT: ${{ github.event_name }}
+        REF_TYPE: ${{ github.ref_type }}
+        REF_NAME: ${{ github.ref_name }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REVISION: ${{ github.sha }}
+        SOURCE: ${{ github.server_url }}/${{ github.repository }}
+        REPOSITORY_NAME: ${{ steps.repository.outputs.name }}
+        REPOSITORY_DESCRIPTION: ${{ steps.repository.outputs.description }}
+        LICENSES: ${{ steps.repository.outputs.license }}
+      run: bash "$GITHUB_ACTION_PATH/freeze.sh"

@@ -1,0 +1,11 @@
+name: Bake publish
+description: >-
+  Internal to .github/workflows/bake.yml. Creates, tags and annotates the multi-platform manifests from the bake
+  definition in $RUNNER_TEMP/bake and the digests in $RUNNER_TEMP/digests.
+
+runs:
+  using: composite
+  steps:
+    - name: Create the manifests
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/publish.sh"

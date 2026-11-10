@@ -4,19 +4,32 @@ silent: true
 
 vars:
   ACTIONLINT_TAG_VERSION: "1.7.12"
+  SHELLCHECK_TAG_VERSION: "v0.11.0"
 
 tasks:
   lint:
-    desc: Lint GitHub Actions workflow files using actionlint
-    cmd: docker run --rm
-      --volume "{{.ROOT_DIR}}:/workdir"
-      --workdir /workdir
-      rhysd/actionlint:{{.ACTIONLINT_TAG_VERSION}}
+    desc: Lint GitHub Actions workflow files using actionlint, and the bake scripts using shellcheck
+    cmds:
+      - docker run --rm
+        --volume "{{.ROOT_DIR}}:/workdir"
+        --workdir /workdir
+        rhysd/actionlint:{{.ACTIONLINT_TAG_VERSION}}
+      - docker run --rm
+        --volume "{{.ROOT_DIR}}:/workdir"
+        --workdir /workdir
+        koalaman/shellcheck:{{.SHELLCHECK_TAG_VERSION}}
+        bake/lib.sh bake/*/*.sh bake/test/*.sh
 
   test:
-    desc: Run the bake/specs.hcl fixture tests
-    cmd: bake/test/run.sh
+    desc: Run the bake/specs.hcl fixture tests and the tests of the bake actions' scripts
+    cmds:
+      - bake/test/run.sh
+      - bake/test/vars.sh
+      - bake/test/secrets.sh
+      - bake/test/pipeline.sh
 
   test:update:
-    desc: Rewrite the expected output of the bake/specs.hcl fixture tests
-    cmd: bake/test/run.sh --update
+    desc: Rewrite the expected output of the specs.hcl fixture tests and the pipeline tests
+    cmds:
+      - bake/test/run.sh --update
+      - bake/test/pipeline.sh --update

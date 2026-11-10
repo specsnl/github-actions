@@ -1,0 +1,226 @@
+name: Bake
+
+on:
+  workflow_call:
+    inputs:
+      files:
+        description: >-
+          The consumer's bake files (multiline). The workflow reads its own bake/specs.hcl first, at the version of
+          this workflow, so the bake files can use its functions without a copy of it.
+        type: string
+        default: docker-bake.hcl
+      targets:
+        description: Bake targets or groups to build (multiline). Defaults to the "default" group.
+        type: string
+        required: false
+      version:
+        description: >-
+          The VERSION bake variable. Defaults to the tag without its leading "v" on a tag push, "pr-<number>" on a
+          pull request, the branch name on a branch push, "nightly" on a schedule and the dispatch tag on
+          workflow_dispatch.
+        type: string
+        required: false
+      dispatch-tag:
+        description: Tag published by a workflow_dispatch run. Lowercased.
+        type: string
+        default: latest
+      push:
+        description: >-
+          "true" or "false". Defaults to pushing, except for pull requests from dependabot or from a fork, pushes to
+          a dependabot branch, and events the tag rules don't cover.
+        type: string
+        required: false
+      runners:
+        description: >-
+          JSON object mapping a platform to its runner, merged over the default
+          {"linux/amd64": "ubuntu-26.04", "linux/arm64": "ubuntu-26.04-arm"}.
+        type: string
+        required: false
+      disable-apparmor:
+        description: Disable AppArmor on the build runners before building.
+        type: boolean
+        default: false
+      timeout-minutes:
+        description: Timeout of each build job.
+        type: number
+        default: 60
+    secrets:
+      build-secrets:
+        description: >-
+          Build secrets as "NAME=value" lines. Each one is masked and exported as an environment variable to the
+          build, where the bake file refers to it with secret = ["id=<id>,env=NAME"].
+        required: false
+    outputs:
+      version:
+        description: The VERSION the images were built with.
+        value: ${{ jobs.plan.outputs.version }}
+      push:
+        description: Whether the images were pushed ("true" or "false").
+        value: ${{ jobs.plan.outputs.push }}
+
+permissions: {}
+
+jobs:
+
+  plan:
+    name: Plan
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      push: ${{ steps.plan.outputs.push }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      artifact: ${{ steps.plan.outputs.artifact }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Plan
+        id: plan
+        uses: $/bake/plan
+        with:
+          files: ${{ inputs.files }}
+          targets: ${{ inputs.targets }}
+          version: ${{ inputs.version }}
+          dispatch-tag: ${{ inputs.dispatch-tag }}
+          push: ${{ inputs.push }}
+          runners: ${{ inputs.runners }}
+
+      - name: Upload the bake definition
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.plan.outputs.artifact }}-definition
+          path: |
+            ${{ runner.temp }}/bake/definition.json
+            ${{ runner.temp }}/bake/publish.json
+          if-no-files-found: error
+          retention-days: 1
+
+  build:
+    name: Build ${{ matrix.platform }}
+    needs: plan
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the bake definition
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.plan.outputs.artifact }}-definition
+          path: ${{ runner.temp }}/bake
+
+      - name: Narrow the definition to ${{ matrix.platform }}
+        id: definition
+        uses: $/bake/narrow
+        with:
+          platform: ${{ matrix.platform }}
+          slug: ${{ matrix.slug }}
+
+      - name: Export the build secrets
+        uses: $/bake/secrets
+        with:
+          secrets: ${{ secrets.build-secrets }}
+
+      - name: Log in to the Container registry
+        if: ${{ needs.plan.outputs.push == 'true' }}
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Disable AppArmor
+        if: ${{ inputs.disable-apparmor }}
+        uses: cisagov/action-disable-apparmor@437d94f26a2e4bf8c03acfb500a6afc688b497db # v1.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build
+        id: bake
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 1
+        with:
+          source: .
+          files: ${{ steps.definition.outputs.file }}
+
+      - name: Export the digests
+        if: ${{ needs.plan.outputs.push == 'true' }}
+        uses: $/bake/digests
+        with:
+          metadata: ${{ steps.bake.outputs.metadata }}
+          slug: ${{ matrix.slug }}
+
+      - name: Upload the digests
+        if: ${{ needs.plan.outputs.push == 'true' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ needs.plan.outputs.artifact }}-digests-${{ matrix.slug }}
+          path: ${{ runner.temp }}/digests/digests-${{ matrix.slug }}.json
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish
+    needs: [plan, build]
+    if: ${{ needs.plan.outputs.push == 'true' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      packages: write
+    steps:
+
+      - name: Download the bake definition
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.plan.outputs.artifact }}-definition
+          path: ${{ runner.temp }}/bake
+
+      - name: Download the digests
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: ${{ needs.plan.outputs.artifact }}-digests-*
+          path: ${{ runner.temp }}/digests
+          merge-multiple: true
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create the manifests
+        uses: $/bake/publish
+
+  status:
+    name: Image
+    needs: [plan, build, publish]
+    if: ${{ always() }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - name: Check the results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<< "$NEEDS"
+          jq -e '.plan.result == "success" and all(.[]; .result == "success" or .result == "skipped")' <<< "$NEEDS" > /dev/null
