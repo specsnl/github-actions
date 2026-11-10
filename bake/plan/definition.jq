@@ -11,7 +11,7 @@ def image: .tags[0] | sub(":[^:/]*$"; "");
 )
 | .target |= map_values(
     (if $push == "true" then
-      "type=image,name=\(image),push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+      "type=image,name=\(image),push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
     else
       "type=cacheonly"
     end) as $output

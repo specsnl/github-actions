@@ -116,6 +116,9 @@ Check these against your last 3.x release before you merge the migration:
 - **A prerelease never moves `latest`**, for every image, not only Go CLIs.
 - **`org.opencontainers.image.version` is the version without the `v`**, on a plain image too, and it is the same in
   the config labels, the platform manifests, the index and its descriptors.
+- **`created` is the commit time**, not the time of the build. It is the same in the labels, the annotations and the
+  image config, and with the other timestamps fixed the same commit builds the same image. See
+  [Reproducible images](pipeline.md#reproducible-images).
 - **The same label keys, with the same value everywhere.** `specs_labels` sets the keys metadata-action did —
   `title` and `description` (falling back to the repository's, as before), `licenses`, `version`, `revision`, `source`,
   `url` and `created`. What changes is that the index, its descriptors, the platform manifests and the config labels

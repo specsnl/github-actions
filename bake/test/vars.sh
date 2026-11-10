@@ -7,19 +7,24 @@ cd "$(dirname "$0")/../.."
 failed=0
 
 # check <description> <expected outputs> <environment...>
+# Leaves out source-date-epoch and created, unless the description starts with "commit time".
 check() {
   local description="$1" expected="$2"
   shift 2
 
+  local skip='^(source-date-epoch|created)<<'
+  [[ $description == 'commit time'* ]] && skip='^(version|dispatch-tag|is-stable|push)<<'
+
   local output status=0 actual
   output=$(mktemp)
-  env -i PATH="$PATH" GITHUB_OUTPUT="$output" GITHUB_REPOSITORY=specsnl/example "$@" bake/plan/vars.sh > /dev/null 2>&1 || status=$?
+  env -i PATH="$PATH" GITHUB_OUTPUT="$output" GITHUB_REPOSITORY=specsnl/example SOURCE_DATE_EPOCH=1762689600 "$@" \
+    bake/plan/vars.sh > /dev/null 2>&1 || status=$?
 
   if [ "$status" -ne 0 ]; then
     actual="exit=$status"
   else
-    actual=$(awk '
-      /^created<</ { getline; getline; next }
+    actual=$(awk -v skip="$skip" '
+      $0 ~ skip { getline; getline; next }
       /<<EOF_/ { key = substr($0, 1, index($0, "<<") - 1); getline value; printf "%s=%s ", key, value; getline; next }
     ' "$output" | sed 's/ $//')
   fi
@@ -93,5 +98,11 @@ check 'invalid push' \
 check 'event the tag rules do not cover' \
   'version= dispatch-tag=latest is-stable=false push=false' \
   GITHUB_EVENT_NAME=merge_group GITHUB_REF_TYPE=branch GITHUB_REF_NAME=gh-readonly-queue/main/pr-1
+check 'commit time is the source date epoch and the created label' \
+  'source-date-epoch=1762689600 created=2025-11-09T12:00:00Z' \
+  GITHUB_EVENT_NAME=push GITHUB_REF_TYPE=tag GITHUB_REF_NAME=v1.2.3
+check 'commit time that is not a number' \
+  'exit=1' \
+  GITHUB_EVENT_NAME=push GITHUB_REF_TYPE=tag GITHUB_REF_NAME=v1.2.3 SOURCE_DATE_EPOCH=
 
 exit "$failed"

@@ -11,8 +11,9 @@ plan ──► build linux/amd64 ──┐
 
 The plan job works out everything that depends on the run, once:
 
-- the bake variables — `VERSION`, the event, the ref, `IS_STABLE`, the revision, one `CREATED` timestamp, and the
+- the bake variables — `VERSION`, the event, the ref, `IS_STABLE`, the revision, `CREATED`, and the
   repository's name, description and license (see [the variables CI sets](bake.md#the-variables-ci-sets));
+- `SOURCE_DATE_EPOCH`, the commit time: `git log -1 --pretty=%ct` (see [Reproducible images](#reproducible-images));
 - whether to push (see [below](#when-nothing-is-pushed)).
 
 It then runs `docker buildx bake --print` on the consumer's bake files with those variables set, and **freezes** the
@@ -20,8 +21,7 @@ result: the printed JSON, with each target's `output` replaced by a push by dige
 tags set aside for the publish job. Both go into one artifact.
 
 Every later job builds from that frozen definition instead of evaluating the HCL again. That is what guarantees every
-platform and the publish job see identical tags and labels — including `created`, which would otherwise differ per
-job.
+platform and the publish job see identical tags, labels and build args, `SOURCE_DATE_EPOCH` included.
 
 The plan job also:
 
@@ -43,6 +43,8 @@ Each image is pushed **by digest**: no tags, just the manifest. Nothing is tagge
 leaves a `:latest` pointing at one architecture. The digests are read from bake's metadata and uploaded as one
 artifact per platform.
 
+The image is written with `rewrite-timestamp=true`, see [Reproducible images](#reproducible-images).
+
 Each target gets its own GitHub Actions cache scope, `<image>-<target>-<platform>`, so two images built from the same
 Dockerfile and stage no longer overwrite each other's cache.
 
@@ -59,6 +61,31 @@ It doesn't check out the repository: it only needs the artifacts.
 `status`, named `Image`, always runs and fails unless plan succeeded and build and publish succeeded or were skipped.
 Require that one check: there is one call per repository, so it covers every image the repository publishes. A caller
 sees it as `<calling job> / Image`.
+
+## Reproducible images
+
+Every timestamp in an image comes from the commit, not from the clock, so building the same commit twice gives the
+same image — the same digest:
+
+- `SOURCE_DATE_EPOCH` is the commit time, `git log -1 --pretty=%ct`. The plan job reads it once and freezes it in the
+  definition as a build arg, so every platform uses the same one. BuildKit uses it for the `created` timestamps in the
+  image config and its history.
+- The build writes the image with `rewrite-timestamp=true`, which sets the time of every file the build created or
+  changed to `SOURCE_DATE_EPOCH`. Without it, every `RUN` leaves the build's own time in the layers, and the digest
+  changes on every build.
+- The `org.opencontainers.image.created` label and annotations are the same commit time, as RFC 3339, not the time of
+  the run.
+
+`test-bake.yml` checks it: it builds a test image twice without cache and fails when the digests differ. To check an
+image of your own, see [Building locally](bake.md#building-locally).
+
+What stays outside the commit:
+
+- Base images and packages. A `FROM` by tag, or an `apt-get install` without versions, can resolve to something newer
+  on the next build. Pin base images by digest to rule that out.
+- Provenance attestations, when a target turns them on: they record the time of the build.
+- The BuildKit version. A different version can assemble the same content differently; BuildKit's
+  `compatibility-version` exporter option pins that, but `bake.yml` doesn't set it.
 
 ## Metadata, in every place
 

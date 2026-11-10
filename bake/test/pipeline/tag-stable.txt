@@ -9,7 +9,7 @@ EOF
 == summary summary
 ### Bake definition
 
-Version `1.2.3`, push `true`.
+Version `1.2.3`, push `true`, `SOURCE_DATE_EPOCH` 1762689600 (2026-11-09T12:00:00Z).
 
 | Target | Platforms | Tags |
 |--------|-----------|------|
@@ -40,6 +40,9 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
+      "args": {
+        "SOURCE_DATE_EPOCH": "1762689600"
+      },
       "context": "bake/test/e2e",
       "dockerfile": "Dockerfile",
       "labels": {
@@ -53,7 +56,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/amd64",
@@ -79,7 +82,8 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
       "args": {
-        "E2E_VERSION": "1.2.3"
+        "E2E_VERSION": "1.2.3",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "context": "bake/test/e2e",
       "dockerfile": "Dockerfile",
@@ -94,7 +98,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/amd64"
@@ -113,7 +117,8 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
       "args": {
-        "E2E_VERSION": "1.2.3"
+        "E2E_VERSION": "1.2.3",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "context": "bake/test/e2e",
       "dockerfile": "Dockerfile",
@@ -128,7 +133,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/amd64",
@@ -248,6 +253,9 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
+      "args": {
+        "SOURCE_DATE_EPOCH": "1762689600"
+      },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-amd64"
       ],
@@ -267,7 +275,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/amd64"
@@ -292,7 +300,8 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
       "args": {
-        "E2E_VERSION": "1.2.3"
+        "E2E_VERSION": "1.2.3",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-alpine-linux-amd64"
@@ -313,7 +322,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/amd64"
@@ -332,7 +341,8 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
       "args": {
-        "E2E_VERSION": "1.2.3"
+        "E2E_VERSION": "1.2.3",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-amd64"
@@ -353,7 +363,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/amd64"
@@ -385,6 +395,9 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
+      "args": {
+        "SOURCE_DATE_EPOCH": "1762689600"
+      },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-app-linux-arm64"
       ],
@@ -404,7 +417,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/arm64"
@@ -429,7 +442,8 @@ Version `1.2.3`, push `true`.
         "manifest:org.opencontainers.image.version=1.2.3"
       ],
       "args": {
-        "E2E_VERSION": "1.2.3"
+        "E2E_VERSION": "1.2.3",
+        "SOURCE_DATE_EPOCH": "1762689600"
       },
       "cache-from": [
         "type=gha,scope=ghcr-io-specsnl-github-actions-e2e-cli-cli-debian-linux-arm64"
@@ -450,7 +464,7 @@ Version `1.2.3`, push `true`.
         "org.opencontainers.image.version": "1.2.3"
       },
       "output": [
-        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true"
+        "type=image,name=ghcr.io/specsnl/github-actions/e2e-cli,push-by-digest=true,name-canonical=true,oci-mediatypes=true,rewrite-timestamp=true,push=true"
       ],
       "platforms": [
         "linux/arm64"
