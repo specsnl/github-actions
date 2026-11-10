@@ -6,9 +6,10 @@ migrated keeps working on `@3.0.2`; there is no need to move every repository at
 
 The migration per repository:
 
-1. Copy `specs.hcl` in — see [Getting `specs.hcl`](bake.md#getting-specshcl).
+1. Fetch `specs.hcl` for local builds, and add `.specs.hcl` to `.gitignore` — see
+   [Getting `specs.hcl`](bake.md#getting-specshcl). CI needs no copy.
 2. Write `docker-bake.hcl` from the old inputs (below).
-3. Check it locally with `docker buildx bake -f specs.hcl -f docker-bake.hcl --print`, with the
+3. Check it locally with `docker buildx bake -f .specs.hcl -f docker-bake.hcl --print`, with the
    [CI variables](bake.md#building-locally) of a release set, against the tags the last 3.x release published.
 4. Replace every build and merge job with one `bake.yml` call.
 5. Update the required checks in the same change: `image / Image` replaces the `Build Image` and `Merge Images`

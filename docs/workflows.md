@@ -9,8 +9,7 @@ Builds and publishes every target of the consumer's bake files. See [Building im
 
 | Input              | Type    | Default           | Description                                                                            |
 |--------------------|---------|-------------------|----------------------------------------------------------------------------------------|
-| `files`            | string  | `docker-bake.hcl` | The consumer's bake files (multiline), read after `specs-file`                         |
-| `specs-file`       | string  | `specs.hcl`       | The vendored copy of `bake/specs.hcl`; an empty string if the bake files don't use it  |
+| `files`            | string  | `docker-bake.hcl` | The consumer's bake files (multiline), read after this version's `bake/specs.hcl`      |
 | `targets`          | string  | —                 | Targets or groups to build (multiline); the `default` group when empty                 |
 | `version`          | string  | —                 | Overrides `VERSION`; see [how it is worked out](bake.md#the-variables-ci-sets)         |
 | `dispatch-tag`     | string  | `latest`          | Tag published by a `workflow_dispatch` run; lowercased                                 |

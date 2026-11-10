@@ -27,7 +27,7 @@ The plan job also:
 
 - outputs the platforms, the union over all targets, as the build matrix, each with its runner from the `runners`
   input;
-- compares the consumer's `specs.hcl` with the one this version of the workflow expects, and warns when they differ;
+- reads `specs.hcl` from this repository, at the version of the workflow, before the consumer's bake files;
 - fails early, with the target named, when a target has no `platforms`, or has no tags for an event it would push.
 
 The run summary shows every target, its platforms and its tags.
@@ -97,5 +97,5 @@ success.
 ## Artifacts
 
 The definition and digest artifacts are named `bake-<id>-definition` and `bake-<id>-digests-<platform>`, where `<id>`
-is derived from the `files`, `specs-file` and `targets` inputs, so one run can call the workflow more than once. They
+is derived from the `files` and `targets` inputs, so one run can call the workflow more than once. They
 are kept for one day: they belong to a single run, not to a build record.

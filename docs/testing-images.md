@@ -26,13 +26,19 @@ jobs:
 
       - uses: docker/setup-buildx-action@v4
 
+      # specs.hcl at the version of bake.yml this repository calls; see docs/bake.md.
+      - name: Fetch specs.hcl
+        run: |
+          ref=$(grep -ohE 'specsnl/github-actions/\.github/workflows/bake\.yml@[^[:space:]#]+' .github/workflows/*.y*ml | head -1 | cut -d@ -f2)
+          curl -fsSLo .specs.hcl "https://raw.githubusercontent.com/specsnl/github-actions/$ref/bake/specs.hcl"
+
       - uses: docker/bake-action@v7
         env:
           VERSION: ci
         with:
           source: .
           files: |
-            specs.hcl
+            .specs.hcl
             docker-bake.hcl
           targets: cli-debian
           load: true

@@ -9,19 +9,16 @@ Tags are plain semver with no `v` prefix: `4.0.0`, `3.0.2`, `2.0.0-rc.1`.
 1. Merge the pull request. This repository merges with merge commits, so every commit on the branch lands in `main`.
 2. Tag the merge commit on `main` with the new version and push the tag.
 
-There is nothing to bump before tagging. `bake.yml` references no other file of this repository by tag — `specs.hcl`
-is vendored by the consumers — so a tag can't ship with references to an older one, which is how `3.0.1` shipped
-without its fix. `lint.yml` fails when a workflow starts referencing this repository by tag again.
+There is nothing to bump before tagging. `bake.yml` reaches its own scripts and `specs.hcl` through the composite
+actions under `bake/`, called with the `$/` self-repository syntax, which always resolves to the commit that is
+running. A tag can't ship with references to an older one, which is how `3.0.1` shipped without its fix. `lint.yml`
+fails when a workflow starts referencing this repository by tag again.
 
-## `specs.hcl` and its hash
+## `specs.hcl`
 
-The plan job warns when a consumer's copy of `specs.hcl` differs from the one it was released with. It knows that one
-by its SHA-256, `SPECS_HCL_SHA256` in `bake.yml`. A change to `bake/specs.hcl` has to update that hash in the same pull
-request; `lint.yml` fails until it does. `task test:update` rewrites it, together with the expected output of the
-fixture tests.
-
-A change to `specs.hcl` changes what consumers publish, so check the fixture test diff as carefully as the change
-itself.
+Consumers get `specs.hcl` from the version of `bake.yml` they call, so a change to it reaches them with the next tag
+they move to. It changes what they publish, so check the fixture test diff as carefully as the change itself.
+`task test:update` rewrites the expected output of the fixture and pipeline tests.
 
 ## Versioning
 
