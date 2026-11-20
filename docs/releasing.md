@@ -52,3 +52,7 @@ supports it.
 `test-bake.yml` exercises the publish job too: on a pull request from this repository and on a push to `main` it
 publishes `ghcr.io/specsnl/github-actions/e2e` and `…/e2e-cli`, and its `Verify` job checks the platforms and
 annotations of what was published. A manual run publishes only with `push` on.
+
+`cleanup-e2e.yml` runs every night and deletes the `pr-<N>` images of closed pull requests, and the untagged platform
+images no tag refers to any more. Untagged images younger than a day stay, so a run that is still publishing keeps its
+platform images. Run it manually with `dry-run` on to see what it would delete.
