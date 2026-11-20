@@ -5,8 +5,8 @@
 # variables of the event. Sets the outputs version, dispatch-tag, is-stable, push and created.
 set -euo pipefail
 
-# shellcheck source=../lib.sh
-source "$(dirname "$0")/../lib.sh"
+# shellcheck source=lib.sh
+source "$(dirname "$0")/lib.sh"
 
 dispatch_tag="${INPUT_DISPATCH_TAG:-}"
 dispatch_tag="${dispatch_tag,,}"

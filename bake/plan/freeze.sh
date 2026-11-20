@@ -9,8 +9,8 @@
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
-# shellcheck source=../lib.sh
-source "$here/../lib.sh"
+# shellcheck source=lib.sh
+source "$here/lib.sh"
 
 specs="$here/../specs.hcl"
 if [ ! -f "$specs" ]; then

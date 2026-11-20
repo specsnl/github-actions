@@ -4,8 +4,8 @@
 # Reads GH_TOKEN and GITHUB_REPOSITORY. Sets the outputs name, description and license.
 set -euo pipefail
 
-# shellcheck source=../lib.sh
-source "$(dirname "$0")/../lib.sh"
+# shellcheck source=lib.sh
+source "$(dirname "$0")/lib.sh"
 
 repository=$(gh api "repos/$GITHUB_REPOSITORY")
 

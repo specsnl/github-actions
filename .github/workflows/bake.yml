@@ -124,9 +124,21 @@ jobs:
           path: ${{ runner.temp }}/bake
 
       - name: Export the build secrets
-        uses: $/bake/secrets
-        with:
-          secrets: ${{ secrets.build-secrets }}
+        env:
+          BUILD_SECRETS: ${{ secrets.build-secrets }}
+        run: |
+          while IFS= read -r line; do
+            [ -z "${line//[[:space:]]/}" ] && continue
+            if [[ ! $line =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+              echo "::error::build-secrets lines must be NAME=value, with a NAME of letters, digits and underscores."
+              exit 1
+            fi
+            value="${line#*=}"
+            [ -n "$value" ] && echo "::add-mask::$value"
+            # The random delimiter keeps a value from ending the block early or injecting more variables.
+            delimiter="EOF_$(openssl rand -hex 16)"
+            printf '%s<<%s\n%s\n%s\n' "${line%%=*}" "$delimiter" "$value" "$delimiter" >> "$GITHUB_ENV"
+          done <<< "$BUILD_SECRETS"
 
       - name: Log in to the Container registry
         if: ${{ needs.plan.outputs.push == 'true' }}

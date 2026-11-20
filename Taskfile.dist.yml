@@ -18,14 +18,13 @@ tasks:
         --volume "{{.ROOT_DIR}}:/workdir"
         --workdir /workdir
         koalaman/shellcheck:{{.SHELLCHECK_TAG_VERSION}}
-        bake/lib.sh bake/*/*.sh bake/test/*.sh
+        bake/*/*.sh bake/test/*.sh
 
   test:
-    desc: Run the bake/specs.hcl fixture tests and the tests of the bake actions' scripts
+    desc: Run the bake/specs.hcl fixture tests and the plan tests
     cmds:
       - bake/test/run.sh
       - bake/test/vars.sh
-      - bake/test/secrets.sh
 
   test:update:
     desc: Rewrite the expected output of the specs.hcl fixture tests
