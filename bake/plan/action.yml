@@ -36,9 +36,6 @@ outputs:
   matrix:
     description: The build jobs, as a JSON array of {platform, slug, runner}.
     value: ${{ steps.freeze.outputs.matrix }}
-  artifact:
-    description: The prefix of this call's artifact names.
-    value: ${{ steps.freeze.outputs.artifact }}
 
 runs:
   using: composite

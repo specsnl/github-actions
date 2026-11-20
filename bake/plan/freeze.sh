@@ -5,7 +5,7 @@
 #   definition-<slug>.json  what the build job for one platform builds, see definition.jq
 #
 # Reads FILES, TARGETS, RUNNERS and PUSH, and passes the environment on to bake for its variables (VERSION, EVENT,
-# ...). Sets the outputs matrix and artifact, and writes the step summary.
+# ...). Sets the output matrix and writes the step summary.
 set -euo pipefail
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -37,8 +37,6 @@ for slug in $(jq -r '.[].slug' <<< "$matrix"); do
 done
 
 output matrix "$matrix"
-# Unique per call, so a caller can use bake.yml more than once in a run.
-output artifact "bake-$(printf '%s\n' "${FILES:-}" "${TARGETS:-}" | sha256sum | cut -c1-12)"
 
 {
   echo '### Bake definition'
