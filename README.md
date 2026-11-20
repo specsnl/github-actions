@@ -31,5 +31,5 @@ What to build — Dockerfiles, stages, image names, platforms, build args — li
 ```bash
 task lint     # actionlint and shellcheck
 task zizmor   # zizmor, online audits when GH_TOKEN is set
-task test     # specs.hcl fixture tests and the tests of the bake actions' scripts
+task test     # specs.hcl fixture tests and the plan tests
 ```

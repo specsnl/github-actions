@@ -36,8 +36,7 @@ a runner fails the plan job. A runner may be a label or a list of labels:
 ```
 
 A build secret's value must fit on one line. The bake file refers to it by its name:
-`secret = ["id=composer_auth,env=COMPOSER_AUTH"]`. Names of the runner's own variables (`GITHUB_*`, `RUNNER_*`,
-`ACTIONS_*`, `PATH`, …) are refused.
+`secret = ["id=composer_auth,env=COMPOSER_AUTH"]`.
 
 The caller has to grant:
 

@@ -18,7 +18,7 @@ fails when a workflow starts referencing this repository by tag again.
 
 Consumers get `specs.hcl` from the version of `bake.yml` they call, so a change to it reaches them with the next tag
 they move to. It changes what they publish, so check the fixture test diff as carefully as the change itself.
-`task test:update` rewrites the expected output of the fixture and pipeline tests.
+`task test:update` rewrites the expected output of the fixture tests.
 
 ## Versioning
 
@@ -49,5 +49,6 @@ the `$/` self-repository syntax `test-bake.yml` uses to call `bake.yml`
 ([rhysd/actionlint#711](https://github.com/rhysd/actionlint/issues/711)). Remove each part once an actionlint release
 supports it.
 
-To exercise the publish job as well, run `test-bake.yml` manually with `push` on. It publishes
-`ghcr.io/specsnl/github-actions/e2e` and `…/e2e-cli`.
+`test-bake.yml` exercises the publish job too: on a pull request from this repository and on a push to `main` it
+publishes `ghcr.io/specsnl/github-actions/e2e` and `…/e2e-cli`, and its `Verify` job checks the platforms and
+annotations of what was published. A manual run publishes only with `push` on.

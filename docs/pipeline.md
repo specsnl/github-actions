@@ -11,13 +11,14 @@ plan ──► build linux/amd64 ──┐
 
 The plan job works out everything that depends on the run, once:
 
-- the bake variables — `VERSION`, the event, the ref, `IS_STABLE`, the revision, one `CREATED` timestamp, and the
-  repository's name, description and license (see [the variables CI sets](bake.md#the-variables-ci-sets));
+- the bake variables — `VERSION`, the event, the ref, the revision and one `CREATED` timestamp (see
+  [the variables CI sets](bake.md#the-variables-ci-sets));
 - whether to push (see [below](#when-nothing-is-pushed)).
 
 It then runs `docker buildx bake --print` on the consumer's bake files with those variables set, and **freezes** the
-result: the printed JSON, with each target's `output` replaced by a push by digest to its first image name, and its
-tags set aside for the publish job. Both go into one artifact.
+result: the printed JSON as it is, for the publish job, and a definition per platform with only the targets that list
+that platform, each target's `output` replaced by a push by digest to its first image name and its tags left out. They
+all go into one artifact.
 
 Every later job builds from that frozen definition instead of evaluating the HCL again. That is what guarantees every
 platform and the publish job see identical tags and labels — including `created`, which would otherwise differ per
@@ -34,21 +35,21 @@ The run summary shows every target, its platforms and its tags.
 
 ## Build — one job per platform, all targets at once
 
-`build` runs once per platform, named `Build <platform>`. Each job checks out the repository, narrows the frozen
-definition to the targets that list its platform, and builds all of them in one `docker/bake-action` run, so stages
-of the same Dockerfile share their layers. A target without that platform is skipped by that job, so targets can have
+`build` runs once per platform, named `Build <platform>`. Each job checks out the repository and builds every target
+in its platform's frozen definition in one `docker/bake-action` run, so stages of the same Dockerfile share their
+layers. A target without that platform is skipped by that job, so targets can have
 different platform sets.
 
 Each image is pushed **by digest**: no tags, just the manifest. Nothing is tagged yet, so a half-finished run never
-leaves a `:latest` pointing at one architecture. The digests are read from bake's metadata and uploaded as one
-artifact per platform.
+leaves a `:latest` pointing at one architecture. Bake's metadata, which holds the digests, is uploaded as one artifact
+per platform.
 
 Each target gets its own GitHub Actions cache scope, `<image>-<target>-<platform>`, so two images built from the same
 Dockerfile and stage no longer overwrite each other's cache.
 
 ## Publish — one job for all targets
 
-`publish` downloads the frozen definition and every digest artifact, and for each target runs
+`publish` downloads the frozen definition and every platform's metadata, and for each target runs
 `docker buildx imagetools create` with the target's digests, tags, and labels as `index:` and `manifest-descriptor:`
 annotations. It then inspects the result by its first tag, so the log shows what was actually published.
 
@@ -96,6 +97,5 @@ success.
 
 ## Artifacts
 
-The definition and digest artifacts are named `bake-<id>-definition` and `bake-<id>-digests-<platform>`, where `<id>`
-is derived from the `files` and `targets` inputs, so one run can call the workflow more than once. They
-are kept for one day: they belong to a single run, not to a build record.
+The artifacts are named `bake-definition` and `bake-metadata-<platform>`, so a run calls the workflow once. They are
+kept for one day: they belong to a single run, not to a build record.
