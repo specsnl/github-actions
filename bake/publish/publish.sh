@@ -31,6 +31,10 @@ for target in $(jq -r '.target | keys[]' "$bake"); do
 
   echo "::group::$target"
   docker buildx imagetools create "${args[@]}" "${sources[@]}"
-  docker buildx imagetools inspect "${tags[0]}"
+  # GHCR can answer "not found" for a moment after it accepted a tag; the inspect is only there for the log.
+  for attempt in 1 2 3 4; do
+    docker buildx imagetools inspect "${tags[0]}" && break
+    sleep "$attempt"
+  done
   echo "::endgroup::"
 done
