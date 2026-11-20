@@ -37,11 +37,6 @@ variable "DISPATCH_TAG" {
   default = "latest"
 }
 
-# "true" on a tag push whose version has no "-" in it. Only then do the moving tags (1.2, 1, latest) move.
-variable "IS_STABLE" {
-  default = "false"
-}
-
 variable "REVISION" {
   default = ""
 }
@@ -72,7 +67,7 @@ function "specs_tag_names" {
   params = [variant]
   result = concat(
     [for tag in _specs_base_tags() : _specs_sanitize(variant == "" ? tag : "${tag}-${variant}")],
-    EVENT == "push" && REF_TYPE == "tag" && IS_STABLE == "true" ? [variant == "" ? "latest" : variant] : [],
+    _specs_is_stable() ? [variant == "" ? "latest" : variant] : [],
   )
 }
 
@@ -117,12 +112,18 @@ function "_specs_base_tags" {
   )
 }
 
+# A tag push whose version has no "-" in it. Only then do the moving tags (1.2, 1, latest) move.
+function "_specs_is_stable" {
+  params = []
+  result = EVENT == "push" && REF_TYPE == "tag" && length(regexall("-", VERSION)) == 0
+}
+
 # 1.2.3, plus 1.2 unless it is 0.0.x and 1 unless it is 0.x. A prerelease, or a version that isn't semver, publishes
 # only itself.
 function "_specs_release_tags" {
   params = []
   result = (
-    IS_STABLE == "true" && length(_specs_semver()) == 1 ? _specs_semver_tags(_specs_semver()[0]) : [VERSION]
+    _specs_is_stable() && length(_specs_semver()) == 1 ? _specs_semver_tags(_specs_semver()[0]) : [VERSION]
   )
 }
 

@@ -60,7 +60,6 @@ runs:
         PUSH: ${{ steps.vars.outputs.push }}
         VERSION: ${{ steps.vars.outputs.version }}
         DISPATCH_TAG: ${{ steps.vars.outputs.dispatch-tag }}
-        IS_STABLE: ${{ steps.vars.outputs.is-stable }}
         CREATED: ${{ steps.vars.outputs.created }}
         EVENT: ${{ github.event_name }}
         REF_TYPE: ${{ github.ref_type }}

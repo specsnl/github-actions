@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Works out the run's version, dispatch tag, stability and whether to push, from the event and the inputs.
+# Works out the run's version, dispatch tag and whether to push, from the event and the inputs.
 #
 # Reads INPUT_VERSION, INPUT_DISPATCH_TAG, INPUT_PUSH, PR_NUMBER, PR_AUTHOR, PR_HEAD_REPOSITORY and the GITHUB_*
-# variables of the event. Sets the outputs version, dispatch-tag, is-stable, push and created.
+# variables of the event. Sets the outputs version, dispatch-tag, push and created.
 set -euo pipefail
 
 # shellcheck source=lib.sh
@@ -25,11 +25,6 @@ if [ -z "$version" ]; then
     schedule) version=nightly ;;
     workflow_dispatch) version="$dispatch_tag" ;;
   esac
-fi
-
-is_stable=false
-if [ "${GITHUB_EVENT_NAME:-}" = push ] && [ "${GITHUB_REF_TYPE:-}" = tag ] && [[ $version != *-* ]]; then
-  is_stable=true
 fi
 
 push="${INPUT_PUSH:-}"
@@ -57,6 +52,5 @@ fi
 
 output version "$version"
 output dispatch-tag "$dispatch_tag"
-output is-stable "$is_stable"
 output push "$push"
 output created "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
