@@ -1,7 +1,7 @@
 name: Bake plan
 description: >-
   Internal to .github/workflows/bake.yml. Works out the run's variables and resolves the bake files, with this
-  repository's bake/specs.hcl first, into the definition, publish list and build matrix in $RUNNER_TEMP/bake.
+  repository's bake/specs.hcl first, into the build matrix and the frozen definitions in $RUNNER_TEMP/bake.
 
 inputs:
   files:

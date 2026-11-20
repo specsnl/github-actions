@@ -1,7 +1,7 @@
 name: Bake publish
 description: >-
   Internal to .github/workflows/bake.yml. Creates, tags and annotates the multi-platform manifests from the bake
-  definition in $RUNNER_TEMP/bake and the digests in $RUNNER_TEMP/digests.
+  definition in $RUNNER_TEMP/bake and the build metadata in $RUNNER_TEMP/metadata.
 
 runs:
   using: composite

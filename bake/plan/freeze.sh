@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Resolves the bake files, with specs.hcl first, into fixed JSON in $RUNNER_TEMP/bake for the build and publish jobs:
 #
-#   definition.json  the targets to build, see definition.jq
-#   publish.json     the images, tags, labels and platforms to publish, see publish.jq
-#   matrix.json      the build jobs, see matrix.jq
+#   bake.json               the output of bake --print; the publish job reads the tags, labels and platforms from it
+#   definition-<slug>.json  what the build job for one platform builds, see definition.jq
 #
 # Reads FILES, TARGETS, RUNNERS and PUSH, and passes the environment on to bake for its variables (VERSION, EVENT,
 # ...). Sets the outputs matrix and artifact, and writes the step summary.
@@ -25,17 +24,19 @@ mapfile -t targets < <(printf '%s\n' "${TARGETS:-}" | trim_lines)
 
 dir="$RUNNER_TEMP/bake"
 mkdir -p "$dir"
-docker buildx bake --progress=quiet "${files[@]}" --print "${targets[@]}" > "$dir/print.json"
-if jq -e '(.target // {}) == {}' "$dir/print.json" > /dev/null; then
+docker buildx bake --progress=quiet "${files[@]}" --print "${targets[@]}" > "$dir/bake.json"
+if jq -e '(.target // {}) == {}' "$dir/bake.json" > /dev/null; then
   echo "::error::The bake files define no targets to build."
   exit 1
 fi
 
-jq --arg push "$PUSH" -f "$here/definition.jq" "$dir/print.json" > "$dir/definition.json"
-jq -f "$here/publish.jq" "$dir/print.json" > "$dir/publish.json"
-jq --argjson override "${RUNNERS:-"{}"}" -f "$here/matrix.jq" "$dir/print.json" > "$dir/matrix.json"
+matrix=$(jq -c --argjson override "${RUNNERS:-"{}"}" --arg push "$PUSH" -f "$here/matrix.jq" "$dir/bake.json")
+for slug in $(jq -r '.[].slug' <<< "$matrix"); do
+  jq --arg platform "$(jq -r --arg slug "$slug" '.[] | select(.slug == $slug) | .platform' <<< "$matrix")" \
+    --arg slug "$slug" --arg push "$PUSH" -f "$here/definition.jq" "$dir/bake.json" > "$dir/definition-$slug.json"
+done
 
-output matrix "$(jq -c . "$dir/matrix.json")"
+output matrix "$matrix"
 # Unique per call, so a caller can use bake.yml more than once in a run.
 output artifact "bake-$(printf '%s\n' "${FILES:-}" "${TARGETS:-}" | sha256sum | cut -c1-12)"
 
@@ -47,7 +48,7 @@ output artifact "bake-$(printf '%s\n' "${FILES:-}" "${TARGETS:-}" | sha256sum | 
   echo '| Target | Platforms | Tags |'
   echo '|--------|-----------|------|'
   jq -r '
-    to_entries[]
-    | "| `\(.key)` | \(.value.platforms | join(", ")) | \(.value.tags | map("`\(.)`") | join("<br>")) |"
-  ' "$dir/publish.json"
+    .target | to_entries[]
+    | "| `\(.key)` | \(.value.platforms | join(", ")) | \(.value.tags // [] | map("`\(.)`") | join("<br>")) |"
+  ' "$dir/bake.json"
 } >> "$GITHUB_STEP_SUMMARY"

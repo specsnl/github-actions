@@ -1,6 +1,14 @@
-# One build job per platform, on the runner $override maps it to, or the default one.
+# Checks the targets, then plans one build job per platform, on the runner $override maps it to, or the default one.
 ({"linux/amd64": "ubuntu-26.04", "linux/arm64": "ubuntu-26.04-arm"} + $override) as $runners
-| [.target[].platforms[]] | unique
+| [
+    .target | to_entries[]
+    | if (.value.platforms // []) == [] then
+        error("target \(.key) has no platforms; set platforms in the bake file")
+      elif $push == "true" and (.value.tags // []) == [] then
+        error("target \(.key) has no tags for this event, so there is nothing to push")
+      else .value.platforms[] end
+  ]
+| unique
 | map({
     platform: .,
     slug: gsub("[^A-Za-z0-9]+"; "-"),
