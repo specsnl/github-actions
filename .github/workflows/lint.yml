@@ -39,8 +39,6 @@ jobs:
         run: bake/test/vars.sh
       - name: Run the build secrets tests
         run: bake/test/secrets.sh
-      - name: Run the pipeline tests
-        run: bake/test/pipeline.sh
       - name: Run shellcheck
         run: >-
           docker run --rm --volume "$PWD:/mnt" --workdir /mnt koalaman/shellcheck:v0.11.0

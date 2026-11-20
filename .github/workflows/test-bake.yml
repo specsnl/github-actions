@@ -27,9 +27,53 @@ jobs:
       packages: write
     with:
       files: bake/test/e2e/docker-bake.hcl
-      push: ${{ inputs.push && 'true' || 'false' }}
+      # Empty outside workflow_dispatch, so bake.yml's own push rules apply: a pull request from this repository
+      # pushes, one from a fork or dependabot doesn't.
+      push: ${{ github.event_name == 'workflow_dispatch' && (inputs.push && 'true' || 'false') || '' }}
     secrets:
       build-secrets: E2E_SECRET=e2e-secret
+
+  verify:
+    name: Verify
+    needs: bake
+    if: ${{ needs.bake.outputs.push == 'true' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      packages: read
+    steps:
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check the published images
+        env:
+          IMAGE: ghcr.io/specsnl/github-actions/e2e
+          VERSION: ${{ needs.bake.outputs.version }}
+        run: |
+          # check <reference> <platforms> <title>: the index has exactly these platforms and carries the labels.
+          check() {
+            local raw
+            raw=$(docker buildx imagetools inspect --raw "$1")
+            if ! jq -e --arg platforms "$2" --arg title "$3" --arg version "$VERSION" '
+              ([.manifests[].platform | "\(.os)/\(.architecture)"] | sort | join(" ")) == $platforms
+              and .annotations["org.opencontainers.image.title"] == $title
+              and .annotations["org.opencontainers.image.version"] == $version
+            ' <<< "$raw" > /dev/null; then
+              echo "::error::$1 doesn't have the expected platforms ($2) or annotations."
+              jq . <<< "$raw"
+              return 1
+            fi
+            echo "ok $1"
+          }
+
+          check "$IMAGE:$VERSION" 'linux/amd64 linux/arm64' 'e2e app'
+          check "$IMAGE-cli:$VERSION" 'linux/amd64 linux/arm64' 'e2e cli'
+          check "$IMAGE-cli:$VERSION-alpine" 'linux/amd64' 'e2e cli'
 
   load:
     name: Load

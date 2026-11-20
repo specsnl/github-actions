@@ -26,10 +26,7 @@ tasks:
       - bake/test/run.sh
       - bake/test/vars.sh
       - bake/test/secrets.sh
-      - bake/test/pipeline.sh
 
   test:update:
-    desc: Rewrite the expected output of the specs.hcl fixture tests and the pipeline tests
-    cmds:
-      - bake/test/run.sh --update
-      - bake/test/pipeline.sh --update
+    desc: Rewrite the expected output of the specs.hcl fixture tests
+    cmd: bake/test/run.sh --update
