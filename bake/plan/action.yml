@@ -22,9 +22,6 @@ inputs:
   runners:
     description: JSON object mapping a platform to its runner.
     required: false
-  token:
-    description: Token to read the repository's metadata with.
-    default: ${{ github.token }}
 
 outputs:
   version:
@@ -53,13 +50,6 @@ runs:
         PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
       run: bash "$GITHUB_ACTION_PATH/vars.sh"
 
-    - name: Read the repository
-      id: repository
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.token }}
-      run: bash "$GITHUB_ACTION_PATH/repository.sh"
-
     - name: Freeze the bake definition
       id: freeze
       shell: bash
@@ -78,7 +68,4 @@ runs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         REVISION: ${{ github.sha }}
         SOURCE: ${{ github.server_url }}/${{ github.repository }}
-        REPOSITORY_NAME: ${{ steps.repository.outputs.name }}
-        REPOSITORY_DESCRIPTION: ${{ steps.repository.outputs.description }}
-        LICENSES: ${{ steps.repository.outputs.license }}
       run: bash "$GITHUB_ACTION_PATH/freeze.sh"

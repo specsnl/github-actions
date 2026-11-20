@@ -2,8 +2,6 @@
   "builder": {
     "annotations": [
       "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
-      "manifest:org.opencontainers.image.description=An example repository",
-      "manifest:org.opencontainers.image.licenses=MIT",
       "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
       "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
       "manifest:org.opencontainers.image.title=PHP 8.4 builder",
@@ -12,8 +10,6 @@
     ],
     "labels": {
       "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
-      "org.opencontainers.image.description": "An example repository",
-      "org.opencontainers.image.licenses": "MIT",
       "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
       "org.opencontainers.image.source": "https://github.com/specsnl/example",
       "org.opencontainers.image.title": "PHP 8.4 builder",
@@ -31,8 +27,6 @@
     },
     "labels": {
       "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
-      "org.opencontainers.image.description": "An example repository",
-      "org.opencontainers.image.licenses": "MIT",
       "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
       "org.opencontainers.image.source": "https://github.com/specsnl/example",
       "org.opencontainers.image.title": "specs-cli",
@@ -50,8 +44,6 @@
     },
     "labels": {
       "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
-      "org.opencontainers.image.description": "An example repository",
-      "org.opencontainers.image.licenses": "MIT",
       "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
       "org.opencontainers.image.source": "https://github.com/specsnl/example",
       "org.opencontainers.image.title": "specs-cli",
@@ -67,7 +59,6 @@
     "annotations": [
       "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
       "manifest:org.opencontainers.image.description=PHP 8.4 runtime",
-      "manifest:org.opencontainers.image.licenses=MIT",
       "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
       "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
       "manifest:org.opencontainers.image.title=PHP 8.4",
@@ -77,7 +68,6 @@
     "labels": {
       "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
       "org.opencontainers.image.description": "PHP 8.4 runtime",
-      "org.opencontainers.image.licenses": "MIT",
       "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
       "org.opencontainers.image.source": "https://github.com/specsnl/example",
       "org.opencontainers.image.title": "PHP 8.4",
@@ -92,21 +82,15 @@
   "utils": {
     "annotations": [
       "manifest:org.opencontainers.image.created=2026-11-09T12:00:00Z",
-      "manifest:org.opencontainers.image.description=An example repository",
-      "manifest:org.opencontainers.image.licenses=MIT",
       "manifest:org.opencontainers.image.revision=0123456789abcdef0123456789abcdef01234567",
       "manifest:org.opencontainers.image.source=https://github.com/specsnl/example",
-      "manifest:org.opencontainers.image.title=example",
       "manifest:org.opencontainers.image.url=https://github.com/specsnl/example",
       "manifest:org.opencontainers.image.version=2026.11"
     ],
     "labels": {
       "org.opencontainers.image.created": "2026-11-09T12:00:00Z",
-      "org.opencontainers.image.description": "An example repository",
-      "org.opencontainers.image.licenses": "MIT",
       "org.opencontainers.image.revision": "0123456789abcdef0123456789abcdef01234567",
       "org.opencontainers.image.source": "https://github.com/specsnl/example",
-      "org.opencontainers.image.title": "example",
       "org.opencontainers.image.url": "https://github.com/specsnl/example",
       "org.opencontainers.image.version": "2026.11"
     },

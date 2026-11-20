@@ -54,19 +54,6 @@ variable "CREATED" {
   default = ""
 }
 
-# The repository's name, description and SPDX license, the fallbacks for the title, description and licenses labels.
-variable "REPOSITORY_NAME" {
-  default = ""
-}
-
-variable "REPOSITORY_DESCRIPTION" {
-  default = ""
-}
-
-variable "LICENSES" {
-  default = ""
-}
-
 # The full tag list for a target: every image name crossed with the tags this run publishes. A non-empty variant is
 # appended as a suffix ("1.2.3-alpine"), and on a stable release the bare variant name takes the place of "latest".
 #
@@ -89,9 +76,8 @@ function "specs_tag_names" {
   )
 }
 
-# The org.opencontainers.image.* labels: version, revision, source, url, created, licenses, and the given title and
-# description. An empty title or description falls back to the repository's name or description. Empty values are
-# left out rather than written as "".
+# The org.opencontainers.image.* labels: version, revision, source, url, created, and the given title and description.
+# Empty values are left out rather than written as "".
 #
 #   labels = specs_labels("PHP 8.4", "")
 function "specs_labels" {
@@ -103,9 +89,8 @@ function "specs_labels" {
       "org.opencontainers.image.source"      = SOURCE
       "org.opencontainers.image.url"         = SOURCE
       "org.opencontainers.image.created"     = CREATED
-      "org.opencontainers.image.licenses"    = LICENSES
-      "org.opencontainers.image.title"       = title != "" ? title : REPOSITORY_NAME
-      "org.opencontainers.image.description" = description != "" ? description : REPOSITORY_DESCRIPTION
+      "org.opencontainers.image.title"       = title
+      "org.opencontainers.image.description" = description
     } : key => value if value != ""
   }
 }
