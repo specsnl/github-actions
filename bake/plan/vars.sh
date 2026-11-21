@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Works out the run's version, dispatch tag and whether to push, from the event and the inputs.
+# Works out the run's version, dispatch tag and whether to push, from the event and the inputs, and the created time
+# from the commit time.
 #
-# Reads INPUT_VERSION, INPUT_DISPATCH_TAG, INPUT_PUSH, PR_NUMBER, PR_AUTHOR, PR_HEAD_REPOSITORY and the GITHUB_*
-# variables of the event. Sets the outputs version, dispatch-tag, push and created.
+# Reads SOURCE_DATE_EPOCH, INPUT_VERSION, INPUT_DISPATCH_TAG, INPUT_PUSH, PR_NUMBER, PR_AUTHOR, PR_HEAD_REPOSITORY and
+# the GITHUB_* variables of the event. Sets the outputs version, dispatch-tag, push, source-date-epoch and created.
 set -euo pipefail
 
 # shellcheck source=lib.sh
@@ -50,7 +51,13 @@ if [ "$push" != true ] && [ "$push" != false ]; then
   exit 1
 fi
 
+if [[ ! ${SOURCE_DATE_EPOCH:-} =~ ^[0-9]+$ ]]; then
+  echo "::error::Could not read the commit time, got \"${SOURCE_DATE_EPOCH:-}\"."
+  exit 1
+fi
+
 output version "$version"
 output dispatch-tag "$dispatch_tag"
 output push "$push"
-output created "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+output source-date-epoch "$SOURCE_DATE_EPOCH"
+output created "$(TZ=UTC printf '%(%Y-%m-%dT%H:%M:%SZ)T' "$SOURCE_DATE_EPOCH")"
