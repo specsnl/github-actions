@@ -85,8 +85,7 @@ writing `key=`, so an event without a derived version leaves `org.opencontainers
 ## Several image names for one manifest
 
 `create-manifest` accepts a multiline `image-name`. The first line is the primary name — the one the digests were
-pushed under and the one the inspect step reports — and every line is tagged from the same manifest. `merge-php.yml`
-uses this to publish the builder under its old `builder_nodejs` and `node` names as well.
+pushed under and the one the inspect step reports — and every line is tagged from the same manifest.
 
 ## What dependabot gets
 
