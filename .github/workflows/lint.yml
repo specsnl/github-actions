@@ -6,6 +6,9 @@ on:
     tags: ['*']
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,23 +17,51 @@ jobs:
 
   actionlint:
     name: Linting
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Register actionlint problem matcher
         run: echo "::add-matcher::.github/actionlint-matcher.json"
+      # Keep the version in step with ACTIONLINT_TAG_VERSION in Taskfile.dist.yml.
       - name: Run actionlint
-        uses: docker://rhysd/actionlint:latest
+        uses: docker://rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
         with:
           args: -color
+      - name: No references to this repository by tag
+        run: |
+          if grep -rnE 'uses:[[:space:]]*specsnl/github-actions/' .github/workflows; then
+            echo "::error::A workflow references this repository by tag. Use a local path, or add a check that the tag matches the release."
+            exit 1
+          fi
+
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Keep the version in step with ZIZMOR_VERSION in Taskfile.dist.yml.
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          version: 1.32.0
+          advanced-security: false
+          annotations: true
 
   bake-tests:
     name: Bake tests
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Run the specs.hcl fixture tests
