@@ -32,21 +32,14 @@ Always branch from latest `origin/main`.
 
 ## Phase 2 --- GitHub Actions Updates
 
-1. Scan the following locations for pinned `uses:` action references:
-    - `.github/workflows/*.yml`
-    - `.github/actions/**/*.yml`
-    - `*/action.yml` (composite actions in subdirectories at the repository root)
-2. For each external action (e.g. `actions/checkout@v6`, `docker/login-action@v4`), use the GitHub Releases API to find
-the latest release tag. Check every action individually — do not assume that a major-version tag (e.g. `@v6`) is already
-current. A newer major version may exist.
-   - If the reference uses a floating major-version tag (e.g. `@v6`) and that major version is already the latest,
-     leave it as-is — no update is needed.
-   - If the reference is pinned to a specific semver tag (e.g. `@v2.5.0`, `@v22.0.0`) and a newer version exists,
-     update it to the latest release tag.
-   - If the reference is pinned to a commit SHA, leave it as-is — do not convert SHA pins to tags.
-3. Skip self-referencing actions (actions that reference the current repository, e.g.
-`specsnl/github-actions/build-image@1.0.12`) — they are handled in Phase 4.
-4. Update any outdated action versions in-place across all scanned files.
+1. Scan `.github/workflows/*.yml` for `uses:` action references. They are pinned by commit SHA with the version in a
+comment, e.g. `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1`.
+2. For each external action, use the GitHub Releases API to find the latest release tag. Check every action
+individually — a newer major version may exist.
+3. If a newer release exists, replace the SHA with the commit SHA of that release's tag and update the version comment.
+Use the same SHA and comment everywhere the action is used.
+4. Check the `rhysd/actionlint` and `zizmorcore/zizmor` versions too: update the version (and the image digest) in
+`.github/workflows/lint.yml` and the matching variables in `Taskfile.dist.yml` together.
 5. Check `git status` for all changed files. Commit separately if there are any changes.
 Commit message: `chore(deps): Update GitHub Actions versions`.
 6. If there are no changes, skip the commit step and move on to the next phase.
@@ -64,34 +57,15 @@ Abort on any failure.
 Commit message: `chore: Update copyright year`.
 5. If there are no changes, skip the commit step.
 
-## Phase 4 --- Self-referencing Version Bump
-
-1. Determine the current latest release tag of this repository using the GitHub Releases API (e.g., `1.0.12`).
-2. Ask the user whether to bump the **patch** version (e.g., `1.0.12` → `1.0.13`) or the **minor** version
-(e.g., `1.0.12` → `1.1.0`).
-3. Compute the new version tag based on the user's choice.
-4. Update all self-referencing action references across all scanned files to use the new version tag.
-   - Files to scan: same as Phase 2 (`.github/workflows/*.yml`, `.github/actions/**/*.yml`,
-     `*/action.yml`)
-   - Self-referencing actions are those that reference the current repository
-     (e.g., `specsnl/github-actions/*@<version>`)
-   - Update every occurrence across all files before committing — all changes go into a single commit.
-5. If any files were changed, stage them all and create one commit.
-   Commit message: `chore: Bump self-referencing actions to <new-version>`.
-6. If there are no changes, skip the commit step.
-
-Abort on any failure.
-
 ------------------------------------------------------------------------
 
 ## Final State
 
 Abort if there are no changes after all update steps, and inform the user that everything is already up to date.
 
-- There could be up to 3 commits on the `vendor-updates` branch:
+- There could be up to 2 commits on the `vendor-updates` branch:
     1. GitHub Actions version updates
     2. Copyright year update
-    3. Self-referencing version bump
 - Branch: `vendor-updates`
 - Based on latest `origin/main`.
 - The working tree should be clean.
@@ -106,9 +80,8 @@ Updated the following dependencies:
 
 - Updated GitHub Actions versions
 - Updated copyright year
-- Bumped self-referencing actions to <new-version>
 
 ## Post-merge tasks
 
-- [ ] Create and push git tag `<new-version>`
+- [ ] Create and push the next patch tag
 ```
