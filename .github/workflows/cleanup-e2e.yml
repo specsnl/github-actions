@@ -1,0 +1,40 @@
+name: Clean up the e2e images
+
+on:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Only list what would be deleted
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+
+  cleanup:
+    name: Clean up
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: read
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Delete the images of closed pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGES: github-actions/e2e github-actions/e2e-cli
+          DRY_RUN: ${{ inputs.dry-run || false }}
+        run: bake/test/cleanup-e2e.sh

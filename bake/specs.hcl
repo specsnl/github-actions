@@ -1,9 +1,11 @@
 # Shared tag, label and annotation rules for images built with specsnl/github-actions bake.yml.
 #
-# Vendored: copy this file into the consuming repository unchanged and update it when you move bake.yml to a new
-# version; the workflow warns when the copy differs. Build locally with:
+# bake.yml reads this file before the caller's bake files, at the version of bake.yml the caller uses, so a consuming
+# repository doesn't keep a copy. For a local build, fetch it at the commit of the repository's
+# `uses: specsnl/github-actions/.github/workflows/bake.yml@<sha>` line, and leave it out of git:
 #
-#   docker buildx bake -f specs.hcl -f docker-bake.hcl
+#   curl -fsSL -o .specs.hcl https://raw.githubusercontent.com/specsnl/github-actions/<sha>/bake/specs.hcl
+#   docker buildx bake -f .specs.hcl -f docker-bake.hcl
 #
 # The variables below are set by bake.yml's plan job. The defaults are what a local build gets.
 
@@ -35,11 +37,6 @@ variable "DISPATCH_TAG" {
   default = "latest"
 }
 
-# "true" on a tag push whose version has no "-" in it. Only then do the moving tags (1.2, 1, latest) move.
-variable "IS_STABLE" {
-  default = "false"
-}
-
 variable "REVISION" {
   default = ""
 }
@@ -49,19 +46,6 @@ variable "SOURCE" {
 }
 
 variable "CREATED" {
-  default = ""
-}
-
-# The repository's name, description and SPDX license, the fallbacks for the title, description and licenses labels.
-variable "REPOSITORY_NAME" {
-  default = ""
-}
-
-variable "REPOSITORY_DESCRIPTION" {
-  default = ""
-}
-
-variable "LICENSES" {
   default = ""
 }
 
@@ -83,13 +67,12 @@ function "specs_tag_names" {
   params = [variant]
   result = concat(
     [for tag in _specs_base_tags() : _specs_sanitize(variant == "" ? tag : "${tag}-${variant}")],
-    EVENT == "push" && REF_TYPE == "tag" && IS_STABLE == "true" ? [variant == "" ? "latest" : variant] : [],
+    _specs_is_stable() ? [variant == "" ? "latest" : variant] : [],
   )
 }
 
-# The org.opencontainers.image.* labels: version, revision, source, url, created, licenses, and the given title and
-# description. An empty title or description falls back to the repository's name or description. Empty values are
-# left out rather than written as "".
+# The org.opencontainers.image.* labels: version, revision, source, url, created, and the given title and description.
+# Empty values are left out rather than written as "".
 #
 #   labels = specs_labels("PHP 8.4", "")
 function "specs_labels" {
@@ -101,9 +84,8 @@ function "specs_labels" {
       "org.opencontainers.image.source"      = SOURCE
       "org.opencontainers.image.url"         = SOURCE
       "org.opencontainers.image.created"     = CREATED
-      "org.opencontainers.image.licenses"    = LICENSES
-      "org.opencontainers.image.title"       = title != "" ? title : REPOSITORY_NAME
-      "org.opencontainers.image.description" = description != "" ? description : REPOSITORY_DESCRIPTION
+      "org.opencontainers.image.title"       = title
+      "org.opencontainers.image.description" = description
     } : key => value if value != ""
   }
 }
@@ -130,12 +112,18 @@ function "_specs_base_tags" {
   )
 }
 
+# A tag push whose version has no "-" in it. Only then do the moving tags (1.2, 1, latest) move.
+function "_specs_is_stable" {
+  params = []
+  result = EVENT == "push" && REF_TYPE == "tag" && length(regexall("-", VERSION)) == 0
+}
+
 # 1.2.3, plus 1.2 unless it is 0.0.x and 1 unless it is 0.x. A prerelease, or a version that isn't semver, publishes
 # only itself.
 function "_specs_release_tags" {
   params = []
   result = (
-    IS_STABLE == "true" && length(_specs_semver()) == 1 ? _specs_semver_tags(_specs_semver()[0]) : [VERSION]
+    _specs_is_stable() && length(_specs_semver()) == 1 ? _specs_semver_tags(_specs_semver()[0]) : [VERSION]
   )
 }
 
