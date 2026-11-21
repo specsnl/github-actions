@@ -185,16 +185,12 @@ target "runtime" {
 }
 
 target "builder" {
-  name       = "builder-${flavour.name}"
-  matrix     = { flavour = FLAVOURS }
-  inherits   = ["_php"]
-  dockerfile = "${flavour.name}/Dockerfile"
-  target     = "builder"
-  tags = specs_tags([
-    "${IMAGE}${flavour.image}/builder",
-    "${IMAGE}${flavour.image}/builder_nodejs",
-    "${IMAGE}${flavour.image}/node",
-  ], "")
+  name        = "builder-${flavour.name}"
+  matrix      = { flavour = FLAVOURS }
+  inherits    = ["_php"]
+  dockerfile  = "${flavour.name}/Dockerfile"
+  target      = "builder"
+  tags        = specs_tags(["${IMAGE}${flavour.image}/builder"], "")
   labels      = specs_labels("PHP 8.4 ${flavour.name} builder", "")
   annotations = specs_annotations("PHP 8.4 ${flavour.name} builder", "")
 }
@@ -202,10 +198,6 @@ target "builder" {
 
 The runtime stage is the image itself; the builder is a separate, nested package with its own `:latest`. That is the
 right shape here — a builder image is a different product from the runtime, not a variant of it.
-
-`builder_nodejs` and `node` are the builder's old names. Projects still pull them — the Dockerfiles generated from
-`specsnl/specs-laravel-project` use `/builder_nodejs` — so keep tagging them until those have moved to `/builder`, then
-drop the two lines.
 
 ### A Go CLI with variants
 

@@ -104,7 +104,6 @@ times two runners, and a merge matrix of three images, into one call.
 | `build-php.yml`, `merge-php.yml`              | `bake.yml` and the [PHP example](bake.md#a-php-image)               |
 | `build-go-cli.yml`, `merge-go-cli.yml`        | `bake.yml` and the [Go CLI example](bake.md#a-go-cli-with-variants) |
 | `notify-slack-tag.yml`'s `channel` input      | Nothing: an incoming webhook always posts to its own channel        |
-| The `builder_nodejs` and `node` builder names | The PHP repository's own HCL, as long as it wants them              |
 
 ## What publishes differently
 
@@ -124,8 +123,6 @@ Check these against your last 3.x release before you merge the migration:
   leaves them out, so pass the title and description to `specs_labels`.
 - **Push follows the event**, not `github.actor`: pull requests from forks and dependabot pull requests that a person
   re-runs no longer try to push. See [when nothing is pushed](pipeline.md#when-nothing-is-pushed).
-- **The PHP builder's old names are yours to publish.** 3.x tagged `/builder_nodejs` and `/node` from `merge-php.yml`.
-  Projects still pull `/builder_nodejs`, so the [PHP example](bake.md#a-php-image) keeps tagging both.
 
 ## Checks and permissions
 
