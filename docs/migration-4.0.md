@@ -2,7 +2,7 @@
 
 4.0.0 replaces every build and merge workflow, and both composite actions, with one reusable workflow, `bake.yml`. What
 to build moves out of workflow inputs into a `docker-bake.hcl` in the consuming repository. A repository that hasn't
-migrated keeps working on `@3.0.2`; there is no need to move every repository at once.
+migrated keeps working on `@3.1.0`; there is no need to move every repository at once.
 
 The migration per repository:
 
@@ -23,7 +23,7 @@ The migration per repository:
 jobs:
   build:
     name: Build
-    uses: specsnl/github-actions/.github/workflows/build.yml@3.0.2
+    uses: specsnl/github-actions/.github/workflows/build.yml@3.1.0
     strategy:
       fail-fast: false
       matrix:
@@ -39,7 +39,7 @@ jobs:
 
   merge:
     name: Merge
-    uses: specsnl/github-actions/.github/workflows/merge.yml@3.0.2
+    uses: specsnl/github-actions/.github/workflows/merge.yml@3.1.0
     needs: build
     with:
       runs-on: ubuntu-26.04
