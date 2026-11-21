@@ -38,25 +38,24 @@ job. `specsnl/php84` is the reference.
 
 ## What gets published
 
-| Dockerfile target | Image name             | Also tagged as                                     |
-|-------------------|------------------------|----------------------------------------------------|
-| `runtime`         | `<image-name>`         | —                                                  |
-| `builder`         | `<image-name>/builder` | `<image-name>/builder_nodejs`, `<image-name>/node` |
+| Dockerfile target | Image name             |
+|-------------------|------------------------|
+| `runtime`         | `<image-name>`         |
+| `builder`         | `<image-name>/builder` |
 
 The runtime stage is the image itself; the builder is a separate, nested package with its own `:latest`. That
 is the right shape here — a builder image is a different product from the runtime, not a variant of it. A CLI that
 ships several base images does the opposite and uses [tag suffixes on one name](go-cli.md#publishing-variants).
 
 The builder includes Node.js. It used to be split into a `builder` stage without Node.js and a `builder_nodejs` stage
-with it, published as `/builder_nodejs` and `/node`. Those names are now tagged from the same manifest as `/builder`,
-so projects that still pull them keep working; they are deprecated and will be removed in a later major version.
+with it, published as `/builder_nodejs` and `/node`. Those names are no longer published: their last images stay in
+the registry but don't receive updates, so pull `/builder` instead.
 
 ## Titles and descriptions
 
 `build-php.yml` takes one `title` / `description` pair for both stages. `merge-php.yml` takes them per stage —
 `title-runtime`, `title-builder` and their `description-*` counterparts — because that is where the manifest is tagged
-and where the labels end up mattering per package. The builder's pair applies to all three of its names.
-
+and where the labels end up mattering per package.
 ## AppArmor
 
 `disable-apparmor: true` disables AppArmor on the runner before building, for images whose build steps it interferes
